@@ -71,10 +71,16 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
   return (
     <div>
       <div className="border-b-4">
-        <h1 className="text-5xl text-center text-gray-600 font-black">Doctor Registration</h1>
-        <p className="text-center text-gray-500 mb-10">Create your doctor account</p>
-
-        <form className="max-w-md mx-auto mt-10" onSubmit={handleSubmit}>
+        <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Doctor Registration</h1>
+        <p className="text-center text-gray-500 mb-2">Create your doctor account</p>
+        <form className="max-w-md mx-auto mt-4">
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
+          >
+            Back to Role Selection
+          </button>  
           <input
             type="text"
             placeholder="First Name *"
@@ -178,13 +184,6 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
             className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
           >
             {loading ? "Registering..." : "Register as Doctor"}
-          </button>
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-lg rounded-2xl bg-gray-400 text-white block mx-auto p-3 w-full"
-          >
-            Back to Role Selection
           </button>
         </form>
       </div>
