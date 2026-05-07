@@ -60,168 +60,134 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
     }
   };
 
+  if (loading) {
+    return <p className="text-center text-4xl">Loading...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500 text-center text-3xl">{error}</p>;
+  }
+
   return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      <button onClick={onBack} style={{ marginBottom: "10px" }}>
-        Back to Role Selection
-      </button>
+    <div>
+      <div className="border-b-4">
+        <h1 className="text-5xl text-center text-gray-600 font-black">Doctor Registration</h1>
+        <p className="text-center text-gray-500 mb-10">Create your doctor account</p>
 
-      <h1>Doctor Registration</h1>
-      <p>Create your doctor account</p>
-
-      {error && (
-        <div style={{ color: "red", padding: "10px", marginBottom: "10px", border: "1px solid red" }}>
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>First Name *</label>
+        <form className="max-w-md mx-auto mt-10" onSubmit={handleSubmit}>
           <input
             type="text"
-            name="firstName"
+            placeholder="First Name *"
             value={formData.firstName}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="firstName"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Last Name</label>
           <input
             type="text"
-            name="lastName"
+            placeholder="Last Name"
             value={formData.lastName}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="lastName"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
           />
-        </div>
-
-        <div>
-          <label>Email *</label>
           <input
             type="email"
-            name="email"
+            placeholder="Email *"
             value={formData.email}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="email"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Password *</label>
           <input
             type="password"
-            name="password"
+            placeholder="Password *"
             value={formData.password}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="password"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Confirm Password *</label>
           <input
             type="password"
-            name="confirmPassword"
+            placeholder="Confirm Password *"
             value={formData.confirmPassword}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="confirmPassword"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Age *</label>
           <input
             type="number"
-            name="age"
+            placeholder="Age *"
             value={formData.age}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="age"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Phone Number *</label>
           <input
             type="tel"
-            name="phoneNumber"
+            placeholder="Phone Number *"
             value={formData.phoneNumber}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="phoneNumber"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Experience (years) *</label>
           <input
             type="number"
-            name="experience"
+            placeholder="Experience (years) *"
             value={formData.experience}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="experience"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Specialization *</label>
           <input
             type="text"
-            name="specialization"
+            placeholder="Specialization (e.g., Cardiology) *"
             value={formData.specialization}
             onChange={handleChange}
-            placeholder="e.g., Cardiology, Surgery"
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="specialization"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Degree *</label>
           <input
             type="text"
-            name="degree"
+            placeholder="Degree (e.g., MBBS) *"
             value={formData.degree}
             onChange={handleChange}
-            placeholder="e.g., MBBS, MD"
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="degree"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
             required
           />
-        </div>
-
-        <div>
-          <label>Profile Image URL</label>
           <input
             type="url"
-            name="profileImageUrl"
+            placeholder="Profile Image URL"
             value={formData.profileImageUrl}
             onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
+            name="profileImageUrl"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
           />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "10px",
-            fontSize: "16px",
-            cursor: "pointer",
-            marginTop: "10px",
-          }}
-        >
-          {loading ? "Registering..." : "Register as Doctor"}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
+          >
+            {loading ? "Registering..." : "Register as Doctor"}
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-lg rounded-2xl bg-gray-400 text-white block mx-auto p-3 w-full"
+          >
+            Back to Role Selection
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
