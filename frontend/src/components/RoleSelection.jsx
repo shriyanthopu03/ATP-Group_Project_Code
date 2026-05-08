@@ -1,4 +1,4 @@
-export default function RoleSelection({ onSelectRole, onLogin }) {
+function RoleSelection({ onSelectRole, onLogin }) {
   const cards = [
     { role: "DOCTOR", title: "Doctor access", description: "Manage schedule, prescriptions, and medical history." },
     { role: "PATIENT", title: "Patient access", description: "Book appointments, view records, and track care." },
@@ -39,3 +39,5 @@ export default function RoleSelection({ onSelectRole, onLogin }) {
     </div>
   );
 }
+
+export default RoleSelection;

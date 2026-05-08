@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { login } from "../api.js";
+import { login } from "/src/api.js";
 
-export default function Login({ onBack, onSuccess }) {
+function Login({ onBack, onSuccess }) {
   const [formData, setFormData] = useState({ role: "PATIENT", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -92,3 +92,5 @@ export default function Login({ onBack, onSuccess }) {
     </div>
   );
 }
+
+export default Login;

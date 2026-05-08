@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { registerDoctor } from "../api.js";
+import { registerDoctor } from "/src/api.js";
 
-export default function DoctorRegistration({ onBack, onSuccess }) {
+function DoctorRegistration({ onBack, onSuccess }) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -186,3 +186,5 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
     </div>
   );
 }
+
+export default DoctorRegistration;

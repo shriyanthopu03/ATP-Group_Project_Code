@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerAdmin } from "../api.js";
+import { registerAdmin } from "/src/api.js";
 
 function AdminRegistration({ onBack, onSuccess }) {
   const [formData, setFormData] = useState({

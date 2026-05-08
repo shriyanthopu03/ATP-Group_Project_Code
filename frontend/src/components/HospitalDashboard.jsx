@@ -104,7 +104,7 @@ const EntityPill = ({ label, value }) => (
   </div>
 );
 
-export default function HospitalDashboard({ user, onLogout }) {
+function HospitalDashboard({ user, onLogout }) {
   const [state, setState] = useState(() => loadHospitalState());
   const [activeTab, setActiveTab] = useState(user.role === "ADMIN" ? "overview" : user.role === "DOCTOR" ? "schedule" : "book");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1085,3 +1085,5 @@ function SearchPanel({ title, items, renderItem }) {
     </div>
   );
 }
+
+export default HospitalDashboard;
