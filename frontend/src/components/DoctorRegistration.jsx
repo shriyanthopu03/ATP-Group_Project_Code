@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { registerDoctor } from "../api.js";
 
 
 function DoctorRegistration({ onBack, onSuccess }) {

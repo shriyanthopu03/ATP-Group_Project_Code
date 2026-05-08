@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { login } from "../api.js";
 
 
 function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
