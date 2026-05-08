@@ -1,82 +1,8 @@
 import exp from "express";
-import { hash, compare } from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { config } from "dotenv";
+import { hash } from "bcryptjs";
 import { DoctorModel } from "../Models/DoctorModel.js";
 
-config();
-
-const { sign } = jwt;
 const doctorApp = exp.Router();
-
-const isProd = process.env.NODE_ENV === "production";
-const cookieOptions = {
-	httpOnly: true,
-	secure: isProd,
-	sameSite: isProd ? "none" : "lax",
-};
-
-const jwtSecret = process.env.SECRET_KEY || process.env.JWT_SECRET;
-
-// Doctor login endpoint
-doctorApp.post("/doctors/login", async (req, res) => {
-	try {
-		const { email, password } = req.body;
-
-		const doctor = await DoctorModel.findOne({ email });
-
-		if (!doctor) {
-			return res.status(400).json({ message: "error occurred", error: "Invalid email" });
-		}
-
-		if (!doctor.isDoctorActive) {
-			return res.status(403).json({ message: "error occurred", error: "User blocked" });
-		}
-
-		const isMatched = await compare(password, doctor.password);
-
-		if (!isMatched) {
-			return res.status(400).json({ message: "Invalid password" });
-		}
-
-		if (!jwtSecret) {
-			return res.status(500).json({
-				message: "error occurred",
-				error: "Server misconfigured: missing JWT secret",
-			});
-		}
-
-		const signedToken = sign(
-			{
-				id: doctor._id,
-				email: doctor.email,
-				role: "DOCTOR",
-				firstName: doctor.firstName,
-				lastName: doctor.lastName,
-				profileImageUrl: doctor.profileImageUrl,
-			},
-			jwtSecret,
-			{
-				expiresIn: "1h",
-			},
-		);
-
-		res.cookie("token", signedToken, cookieOptions);
-
-		const doctorObj = doctor.toObject();
-		delete doctorObj.password;
-
-		return res.status(200).json({
-			message: "login success",
-			payload: doctorObj,
-		});
-	} catch (err) {
-		return res.status(500).json({
-			message: "error occurred",
-			error: err.message,
-		});
-	}
-});
 
 doctorApp.post("/doctors", async (req, res, next) => {
 	try {

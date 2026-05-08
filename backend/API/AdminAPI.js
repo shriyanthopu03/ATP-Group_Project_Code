@@ -1,5 +1,5 @@
 import exp from "express";
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { config } from "dotenv";
 import { AdminModel } from "../Models/AdminModel.js";
@@ -114,6 +114,29 @@ adminApp.get("/check-auth", async (req, res) => {
 			authenticated: false,
 			payload: null,
 		});
+	}
+});
+
+adminApp.post("/admins", async (req, res, next) => {
+	try {
+		const adminData = { ...req.body };
+
+		if (adminData.password) {
+			adminData.password = await hash(adminData.password, 12);
+		}
+
+		const newAdmin = new AdminModel(adminData);
+		await newAdmin.save();
+
+		const savedAdmin = newAdmin.toObject();
+		delete savedAdmin.password;
+
+		return res.status(201).json({
+			message: "Admin created successfully",
+			payload: savedAdmin,
+		});
+	} catch (err) {
+		return next(err);
 	}
 });
 
