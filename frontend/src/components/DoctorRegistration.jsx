@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { registerDoctorAccount } from "../lib/hospitalStore";
 
 
 function DoctorRegistration({ onBack, onSuccess }) {
@@ -51,7 +52,7 @@ function DoctorRegistration({ onBack, onSuccess }) {
       setLoading(true);
       // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerDoctor(dataToSend);
+      const response = await registerDoctorAccount(dataToSend);
       onSuccess(response);
     } catch (err) {
       setError(err.message);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { registerAdminAccount } from "../lib/hospitalStore";
 
 
 function AdminRegistration({ onBack, onSuccess }) {
@@ -46,7 +47,7 @@ function AdminRegistration({ onBack, onSuccess }) {
     try {
       setLoading(true);
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerAdmin(dataToSend);
+      const response = await registerAdminAccount(dataToSend);
       setSuccess("Admin registration successful");
       if (onSuccess) {
         onSuccess(response);
