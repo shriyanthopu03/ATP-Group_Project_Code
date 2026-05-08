@@ -3,10 +3,12 @@ import RoleSelection from "./components/RoleSelection";
 import DoctorRegistration from "./components/DoctorRegistration";
 import PatientRegistration from "./components/PatientRegistration";
 import AdminRegistration from "./components/AdminRegistration";
+import Login from "./components/Login";
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState("roleSelection");
   const [registrationSuccess, setRegistrationSuccess] = useState(null);
+  const [loginSuccess, setLoginSuccess] = useState(null);
 
   const handleSelectRole = (role) => {
     setCurrentStep(role.toLowerCase());

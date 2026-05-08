@@ -1,18 +1,7 @@
 import { useState } from "react";
 import { registerPatient } from "../api";
 
-export default function PatientRegistration({ onBack, onSuccess }) {
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    age: "",
-    phoneNumber: "",
-    address: "",
-    profileImageUrl: "",
-  });
+function PatientRegistration() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -57,9 +46,9 @@ export default function PatientRegistration({ onBack, onSuccess }) {
       setLoading(false);
     }
   };
-
   return (
     <div>
+       <div>
         <div className="border-b-4">
         <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Patient Registration</h1>
         <p className="text-center text-gray-500 mb-2">Create your patient account</p>
@@ -160,5 +149,8 @@ export default function PatientRegistration({ onBack, onSuccess }) {
         </form>
       </div>
     </div>
-  );
+    </div>
+  )
 }
+
+export default PatientRegistration

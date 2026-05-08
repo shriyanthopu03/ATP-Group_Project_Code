@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function AdminRegistration({ onBack }) {
+function AdminRegistration() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -62,7 +62,8 @@ export default function AdminRegistration({ onBack }) {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+    <div>
+      <h1>Admin Registration</h1><div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
       <button onClick={onBack} style={{ marginBottom: "10px" }}>
         Back to Role Selection
       </button>
@@ -157,5 +158,8 @@ export default function AdminRegistration({ onBack }) {
         </button>
       </form>
     </div>
-  );
+    </div>
+  )
 }
+
+export default AdminRegistration

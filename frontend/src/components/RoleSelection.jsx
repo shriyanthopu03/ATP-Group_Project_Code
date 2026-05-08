@@ -1,6 +1,8 @@
-export default function RoleSelection({ onSelectRole }) {
+import React from 'react'
+
+function RoleSelection() {
   return (
-    <div style={{ padding: "20px" }}>
+<div style={{ padding: "20px" }}>
       <h1>Hospital Management System</h1>
       <p>Select your role to register</p>
 
@@ -48,5 +50,7 @@ export default function RoleSelection({ onSelectRole }) {
         </button>
       </div>
     </div>
-  );
+  )
 }
+
+export default RoleSelection

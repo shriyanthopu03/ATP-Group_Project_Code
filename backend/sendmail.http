@@ -1,0 +1,9 @@
+### send mail
+POST /sendmail
+Content-Type: application/json
+
+{
+  "to": "",
+  "subject": "",
+  "text": ""
+}

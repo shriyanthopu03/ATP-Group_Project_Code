@@ -1,0 +1,11 @@
+###register
+POST 
+
+###login
+GET 
+
+### EDIT
+PUT
+
+### DELETE
+DELETE
