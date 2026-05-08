@@ -32,8 +32,8 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
     e.preventDefault();
     setError("");
 
-    if (!formData.firstName || !formData.email || !formData.password) {
-      setError("Please fill in all required fields");
+    if (!formData.firstName || !formData.email || !formData.password || !formData.phoneNumber) {
+      setError("Please fill in all required fields: Name, Email, Password, and Phone Number");
       return;
     }
 
@@ -126,15 +126,6 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
             required
           />
           <input
-            type="number"
-            placeholder="Age *"
-            value={formData.age}
-            onChange={handleChange}
-            name="age"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
             type="tel"
             placeholder="Phone Number *"
             value={formData.phoneNumber}
@@ -145,30 +136,35 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
           />
           <input
             type="number"
-            placeholder="Experience (years) *"
+            placeholder="Age"
+            value={formData.age}
+            onChange={handleChange}
+            name="age"
+            className="mb-3 border-2 p-3 w-full rounded-2xl"
+          />
+          <input
+            type="number"
+            placeholder="Experience (years)"
             value={formData.experience}
             onChange={handleChange}
             name="experience"
             className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
           />
           <input
             type="text"
-            placeholder="Specialization (e.g., Cardiology) *"
+            placeholder="Specialization (e.g., Cardiology)"
             value={formData.specialization}
             onChange={handleChange}
             name="specialization"
             className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
           />
           <input
             type="text"
-            placeholder="Degree (e.g., MBBS) *"
+            placeholder="Degree (e.g., MBBS)"
             value={formData.degree}
             onChange={handleChange}
             name="degree"
             className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
           />
           <input
             type="url"

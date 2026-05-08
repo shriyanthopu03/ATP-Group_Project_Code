@@ -10,10 +10,6 @@ export default function RoleSelection({ onSelectRole, onLogin }) {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <section>
           <p className="text-sm uppercase tracking-[0.35em] text-cyan-200/70">Hospital management</p>
-          <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">One frontend for patients, doctors, and admins</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
-            Register, sign in, and jump straight into role-specific dashboards with appointments, records, search, and reminders.
-          </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <button onClick={onLogin} className="rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
