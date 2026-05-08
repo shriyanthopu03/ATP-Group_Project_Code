@@ -1,22 +1,14 @@
-const API_BASE_URL = "http://localhost:5000/api";
+import {
+  authenticateUser,
+  registerAdminAccount,
+  registerDoctorAccount,
+  registerPatientAccount,
+} from "./lib/hospitalStore";
 
 // Doctor Registration
 export const registerDoctor = async (doctorData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/doctors`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(doctorData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Doctor registration failed");
-    }
-
-    return await response.json();
+    return await registerDoctorAccount(doctorData);
   } catch (error) {
     console.error("Doctor registration error:", error);
     throw error;
@@ -26,20 +18,7 @@ export const registerDoctor = async (doctorData) => {
 // Patient Registration
 export const registerPatient = async (patientData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/patients`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(patientData),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Patient registration failed");
-    }
-
-    return await response.json();
+    return await registerPatientAccount(patientData);
   } catch (error) {
     console.error("Patient registration error:", error);
     throw error;
@@ -49,23 +28,18 @@ export const registerPatient = async (patientData) => {
 // Login (supports role, email, password)
 export const login = async (credentials) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(credentials),
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Login failed");
-    }
-
-    return await response.json();
+    return await authenticateUser(credentials);
   } catch (error) {
     console.error("Login error:", error);
+    throw error;
+  }
+};
+
+export const registerAdmin = async (adminData) => {
+  try {
+    return await registerAdminAccount(adminData);
+  } catch (error) {
+    console.error("Admin registration error:", error);
     throw error;
   }
 };

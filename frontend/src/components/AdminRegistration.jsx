@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { registerAdmin } from "../api";
 
-function AdminRegistration() {
+function AdminRegistration({ onBack, onSuccess }) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -44,16 +45,12 @@ function AdminRegistration() {
 
     try {
       setLoading(true);
-      // Admin registration endpoint can be added to backend later
-      setSuccess("Admin registration feature coming soon");
-      // Reset form
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
+      const { confirmPassword, ...dataToSend } = formData;
+      const response = await registerAdmin(dataToSend);
+      setSuccess("Admin registration successful");
+      if (onSuccess) {
+        onSuccess(response);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -62,102 +59,28 @@ function AdminRegistration() {
   };
 
   return (
-    <div>
-      <h1>Admin Registration</h1><div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-      <button onClick={onBack} style={{ marginBottom: "10px" }}>
-        Back to Role Selection
+    <div className="mx-auto w-full max-w-xl rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-cyan-950/20">
+      <button onClick={onBack} className="mb-4 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200">
+        Back to role selection
       </button>
 
-      <h1>Admin Registration</h1>
-      <p>Create an administrator account</p>
+      <h1 className="text-4xl font-black text-white">Admin registration</h1>
+      <p className="mt-2 text-sm text-slate-400">Create an administrator account for dashboard access.</p>
 
-      {error && (
-        <div style={{ color: "red", padding: "10px", marginBottom: "10px", border: "1px solid red" }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{error}</div>}
+      {success && <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</div>}
 
-      {success && (
-        <div style={{ color: "green", padding: "10px", marginBottom: "10px", border: "1px solid green" }}>
-          {success}
-        </div>
-      )}
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-3">
+        <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First name" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
+        <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last name" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" />
+        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
+        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
+        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm password" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>First Name *</label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
-            required
-          />
-        </div>
-
-        <div>
-          <label>Last Name</label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
-          />
-        </div>
-
-        <div>
-          <label>Email *</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
-            required
-          />
-        </div>
-
-        <div>
-          <label>Password *</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
-            required
-          />
-        </div>
-
-        <div>
-          <label>Confirm Password *</label>
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "8px", marginBottom: "10px", boxSizing: "border-box" }}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "10px",
-            fontSize: "16px",
-            cursor: "pointer",
-            marginTop: "10px",
-          }}
-        >
-          {loading ? "Registering..." : "Register as Admin"}
+        <button type="submit" disabled={loading} className="rounded-full bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60">
+          {loading ? "Registering..." : "Register as admin"}
         </button>
       </form>
-    </div>
     </div>
   )
 }

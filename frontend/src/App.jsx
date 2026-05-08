@@ -4,13 +4,15 @@ import DoctorRegistration from "./components/DoctorRegistration";
 import PatientRegistration from "./components/PatientRegistration";
 import AdminRegistration from "./components/AdminRegistration";
 import Login from "./components/Login";
+import HospitalDashboard from "./components/HospitalDashboard";
 
 export default function App() {
   const [currentStep, setCurrentStep] = useState("roleSelection");
-  const [registrationSuccess, setRegistrationSuccess] = useState(null);
-  const [loginSuccess, setLoginSuccess] = useState(null);
+  const [selectedRole, setSelectedRole] = useState("PATIENT");
+  const [activeUser, setActiveUser] = useState(null);
 
   const handleSelectRole = (role) => {
+    setSelectedRole(role);
     setCurrentStep(role.toLowerCase());
   };
 
@@ -20,93 +22,51 @@ export default function App() {
 
   const handleBack = () => {
     setCurrentStep("roleSelection");
-    setRegistrationSuccess(null);
-    setLoginSuccess(null);
+    setActiveUser(null);
   };
 
   const handleSuccess = (response) => {
-    setRegistrationSuccess(response);
-    setTimeout(() => {
-      setCurrentStep("success");
-    }, 500);
+    setActiveUser(response.payload);
+    setCurrentStep("dashboard");
   };
 
   const handleLoginSuccess = (response) => {
-    setLoginSuccess(response);
-    console.log("Login successful:", response);
-    setTimeout(() => {
-      setCurrentStep("home");
-    }, 500);
+    setActiveUser(response.payload);
+    setCurrentStep("dashboard");
   };
 
   const handleLogout = () => {
-    setLoginSuccess(null);
+    setActiveUser(null);
     setCurrentStep("roleSelection");
   };
 
-  if (registrationSuccess) {
-    return (
-      <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-        <h1>Registration Successful!</h1>
-        <p>Your account has been created successfully.</p>
-        <p>You will be redirected to login shortly...</p>
-        <button onClick={handleBack} style={{ padding: "10px", fontSize: "16px" }}>
-          Back to Home
-        </button>
-      </div>
-    );
-  }
-
-  if (loginSuccess && currentStep === "home") {
-    return (
-      <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-        <h1>Welcome, {loginSuccess.payload?.firstName || loginSuccess.payload?.email}!</h1>
-        <div style={{ marginBottom: "20px", padding: "10px", backgroundColor: "#f0f0f0", borderRadius: "8px" }}>
-          <p><strong>Role:</strong> {loginSuccess.payload?.role}</p>
-          <p><strong>Email:</strong> {loginSuccess.payload?.email}</p>
-          {loginSuccess.payload?.firstName && (
-            <p><strong>Name:</strong> {loginSuccess.payload?.firstName} {loginSuccess.payload?.lastName || ""}</p>
-          )}
-        </div>
-        <button 
-          onClick={handleLogout} 
-          style={{ 
-            padding: "10px 20px", 
-            fontSize: "16px",
-            backgroundColor: "#dc3545",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer"
-          }}
-        >
-          Logout
-        </button>
-      </div>
-    );
+  if (currentStep === "dashboard" && activeUser) {
+    return <HospitalDashboard user={activeUser} onLogout={handleLogout} />;
   }
 
   return (
-    <>
-      {currentStep === "roleSelection" && (
-        <RoleSelection onSelectRole={handleSelectRole} onLogin={handleLogin} />
-      )}
+    <div className="min-h-screen bg-slate-950 text-slate-100">
+      <div className="mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
+        {currentStep === "roleSelection" && (
+          <RoleSelection onSelectRole={handleSelectRole} onLogin={handleLogin} />
+        )}
 
-      {currentStep === "doctor" && (
-        <DoctorRegistration onBack={handleBack} onSuccess={handleSuccess} />
-      )}
+        {currentStep === "doctor" && (
+          <DoctorRegistration onBack={handleBack} onSuccess={handleSuccess} />
+        )}
 
-      {currentStep === "patient" && (
-        <PatientRegistration onBack={handleBack} onSuccess={handleSuccess} />
-      )}
+        {currentStep === "patient" && (
+          <PatientRegistration onBack={handleBack} onSuccess={handleSuccess} />
+        )}
 
-      {currentStep === "admin" && (
-        <AdminRegistration onBack={handleBack} />
-      )}
+        {currentStep === "admin" && (
+          <AdminRegistration onBack={handleBack} onSuccess={handleSuccess} />
+        )}
 
-      {currentStep === "login" && (
-        <Login onBack={handleBack} onSuccess={handleLoginSuccess} />
-      )}
-    </>
+        {currentStep === "login" && (
+          <Login onBack={handleBack} onSuccess={handleLoginSuccess} defaultRole={selectedRole} />
+        )}
+      </div>
+    </div>
   );
 }

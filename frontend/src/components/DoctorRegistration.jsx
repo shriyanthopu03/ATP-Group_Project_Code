@@ -73,7 +73,7 @@ export default function DoctorRegistration({ onBack, onSuccess }) {
       <div className="border-b-4">
         <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Doctor Registration</h1>
         <p className="text-center text-gray-500 mb-2">Create your doctor account</p>
-        <form className="max-w-md mx-auto mt-4">
+        <form className="max-w-md mx-auto mt-4" onSubmit={handleSubmit}>
           <button
             type="button"
             onClick={onBack}
