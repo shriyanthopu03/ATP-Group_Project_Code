@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerPatient } from "../api";
+import { registerPatient } from "../api.js";
 
 function PatientRegistration({ onBack, onSuccess }) {
   const [formData, setFormData] = useState({
