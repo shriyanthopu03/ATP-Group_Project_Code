@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { registerAdmin } from "/src/api.js";
 
 
 function AdminRegistration({ onBack, onSuccess }) {
