@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerDoctor } from "/src/api.js";
+import { registerDoctor } from "../api.js";
 
 
 function DoctorRegistration({ onBack, onSuccess }) {
@@ -70,120 +70,122 @@ function DoctorRegistration({ onBack, onSuccess }) {
   }
 
   return (
-    <div>
-      <div className="border-b-4">
-        <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Doctor Registration</h1>
-        <p className="text-center text-gray-500 mb-2">Create your doctor account</p>
-        <form className="max-w-md mx-auto mt-4" onSubmit={handleSubmit}>
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            Back to Role Selection
-          </button>  
-          <input
-            type="text"
-            placeholder="First Name *"
-            value={formData.firstName}
-            onChange={handleChange}
-            name="firstName"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Last Name"
-            value={formData.lastName}
-            onChange={handleChange}
-            name="lastName"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <input
-            type="email"
-            placeholder="Email *"
-            value={formData.email}
-            onChange={handleChange}
-            name="email"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password *"
-            value={formData.password}
-            onChange={handleChange}
-            name="password"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password *"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            name="confirmPassword"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="tel"
-            placeholder="Phone Number *"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            name="phoneNumber"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Age"
-            value={formData.age}
-            onChange={handleChange}
-            name="age"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <input
-            type="number"
-            placeholder="Experience (years)"
-            value={formData.experience}
-            onChange={handleChange}
-            name="experience"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <input
-            type="text"
-            placeholder="Specialization (e.g., Cardiology)"
-            value={formData.specialization}
-            onChange={handleChange}
-            name="specialization"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <input
-            type="text"
-            placeholder="Degree (e.g., MBBS)"
-            value={formData.degree}
-            onChange={handleChange}
-            name="degree"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <input
-            type="url"
-            placeholder="Profile Image URL"
-            value={formData.profileImageUrl}
-            onChange={handleChange}
-            name="profileImageUrl"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            {loading ? "Registering..." : "Register as Doctor"}
-          </button>
-        </form>
-      </div>
+    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
+      <h1 className="text-4xl font-black text-gray-800 mb-2">Doctor Registration</h1>
+      <p className="text-center text-gray-600 mb-4">Create your doctor account</p>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          Back to Role Selection
+        </button>
+
+        {error && <p className="text-red-600 text-center text-sm mb-3">{error}</p>}
+
+        <input
+          type="text"
+          placeholder="First Name *"
+          value={formData.firstName}
+          onChange={handleChange}
+          name="firstName"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="text"
+          placeholder="Last Name"
+          value={formData.lastName}
+          onChange={handleChange}
+          name="lastName"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <input
+          type="email"
+          placeholder="Email *"
+          value={formData.email}
+          onChange={handleChange}
+          name="email"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password *"
+          value={formData.password}
+          onChange={handleChange}
+          name="password"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Confirm Password *"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          name="confirmPassword"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="tel"
+          placeholder="Phone Number *"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+          name="phoneNumber"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="number"
+          placeholder="Age"
+          value={formData.age}
+          onChange={handleChange}
+          name="age"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <input
+          type="number"
+          placeholder="Experience (years)"
+          value={formData.experience}
+          onChange={handleChange}
+          name="experience"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <input
+          type="text"
+          placeholder="Specialization (e.g., Cardiology)"
+          value={formData.specialization}
+          onChange={handleChange}
+          name="specialization"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <input
+          type="text"
+          placeholder="Degree (e.g., MBBS)"
+          value={formData.degree}
+          onChange={handleChange}
+          name="degree"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <input
+          type="url"
+          placeholder="Profile Image URL"
+          value={formData.profileImageUrl}
+          onChange={handleChange}
+          name="profileImageUrl"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-full bg-cyan-500 px-4 py-3 font-semibold text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60 transition"
+        >
+          {loading ? "Registering..." : "Register as Doctor"}
+        </button>
+      </form>
     </div>
   );
 }

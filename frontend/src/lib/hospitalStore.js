@@ -147,7 +147,16 @@ const findAccount = (state, role, email) => {
 	const normalizedRole = String(role || "").toUpperCase();
 	const normalizedEmail = String(email || "").trim().toLowerCase();
 
-	return state.users.find((user) => user.role === normalizedRole && user.email.toLowerCase() === normalizedEmail);
+	if (!normalizedEmail) {
+		return null;
+	}
+
+	const roleMatch = state.users.find((user) => user.role === normalizedRole && user.email.toLowerCase() === normalizedEmail);
+	if (roleMatch) {
+		return roleMatch;
+	}
+
+	return state.users.find((user) => user.email.toLowerCase() === normalizedEmail);
 };
 
 const buildRolePayload = (state, account) => {
@@ -173,7 +182,7 @@ export const authenticateUser = async ({ role, email, password }) => {
 	const account = findAccount(state, role, email);
 
 	if (!account) {
-		throw new Error("Invalid email or role");
+		throw new Error("Invalid email");
 	}
 
 	if (account.password !== password) {

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { login } from "/src/api.js";
+import { login } from "../api.js";
 
 
-function Login({ onBack, onSuccess }) {
-  const [formData, setFormData] = useState({ role: "PATIENT", email: "", password: "" });
+function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
+  const [formData, setFormData] = useState({ role: String(defaultRole).toUpperCase(), email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -34,62 +34,60 @@ function Login({ onBack, onSuccess }) {
   };
 
   return (
-    <div>
-      <div className="border-b-4">
-        <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Login</h1>
-        <p className="text-center text-gray-500 mb-2">Sign in with your account</p>
+    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
+      <h1 className="text-4xl font-black text-gray-800 mb-2">Login</h1>
+      <p className="text-center text-gray-600 mb-4">Sign in with your account</p>
 
-        <form className="max-w-md mx-auto mt-4" onSubmit={handleSubmit}>
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            Back
-          </button>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        >
+          Back
+        </button>
 
-          {error && <p className="text-red-500 text-center mb-3">{error}</p>}
+        {error && <p className="text-red-600 text-center text-sm mb-3">{error}</p>}
 
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          >
-            <option value="DOCTOR">Doctor</option>
-            <option value="PATIENT">Patient</option>
-            <option value="ADMIN">Admin</option>
-          </select>
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none"
+        >
+          <option value="DOCTOR">Doctor</option>
+          <option value="PATIENT">Patient</option>
+          <option value="ADMIN">Admin</option>
+        </select>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleChange}
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-full bg-cyan-500 px-4 py-3 font-semibold text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60 transition"
+        >
+          {loading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
     </div>
   );
 }

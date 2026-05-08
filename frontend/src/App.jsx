@@ -40,13 +40,13 @@ export default function App() {
     setCurrentStep("roleSelection");
   };
 
-  if (currentStep === "dashboard" && activeUser) {
-    return <HospitalDashboard user={activeUser} onLogout={handleLogout} />;
-  }
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="light-theme min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
+        {currentStep === "dashboard" && activeUser && (
+          <HospitalDashboard user={activeUser} onLogout={handleLogout} />
+        )}
+
         {currentStep === "roleSelection" && (
           <RoleSelection onSelectRole={handleSelectRole} onLogin={handleLogin} />
         )}
