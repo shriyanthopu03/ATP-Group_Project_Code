@@ -1,7 +1,18 @@
 import { useState } from "react";
 import { registerPatient } from "../api";
 
-function PatientRegistration() {
+function PatientRegistration({ onBack, onSuccess }) {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    age: "",
+    phoneNumber: "",
+    address: "",
+    profileImageUrl: "",
+  });
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,7 +63,12 @@ function PatientRegistration() {
         <div className="border-b-4">
         <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Patient Registration</h1>
         <p className="text-center text-gray-500 mb-2">Create your patient account</p>
-             <form className="max-w-md mx-auto mt-4">
+             <form className="max-w-md mx-auto mt-4" onSubmit={handleSubmit}>
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
+              {error}
+            </div>
+          )}
           <button
             type="button"
             onClick={onBack}
