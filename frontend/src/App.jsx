@@ -14,15 +14,28 @@ export default function App() {
     setCurrentStep(role.toLowerCase());
   };
 
+  const handleLogin = () => {
+    setCurrentStep("login");
+  };
+
   const handleBack = () => {
     setCurrentStep("roleSelection");
     setRegistrationSuccess(null);
+    setLoginSuccess(null);
   };
 
   const handleSuccess = (response) => {
     setRegistrationSuccess(response);
     setTimeout(() => {
       setCurrentStep("success");
+    }, 500);
+  };
+
+  const handleLoginSuccess = (response) => {
+    setLoginSuccess(response);
+    console.log("Login successful:", response);
+    setTimeout(() => {
+      setCurrentStep("loginSuccess");
     }, 500);
   };
 
@@ -33,7 +46,20 @@ export default function App() {
         <p>Your account has been created successfully.</p>
         <p>You will be redirected to login shortly...</p>
         <button onClick={handleBack} style={{ padding: "10px", fontSize: "16px" }}>
-          Back to Registration
+          Back to Home
+        </button>
+      </div>
+    );
+  }
+
+  if (loginSuccess) {
+    return (
+      <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+        <h1>Login Successful!</h1>
+        <p>Welcome, {loginSuccess.payload?.firstName}!</p>
+        <p>Role: {loginSuccess.payload?.role}</p>
+        <button onClick={handleBack} style={{ padding: "10px", fontSize: "16px" }}>
+          Back to Home
         </button>
       </div>
     );
@@ -42,7 +68,7 @@ export default function App() {
   return (
     <>
       {currentStep === "roleSelection" && (
-        <RoleSelection onSelectRole={handleSelectRole} />
+        <RoleSelection onSelectRole={handleSelectRole} onLogin={handleLogin} />
       )}
 
       {currentStep === "doctor" && (
@@ -55,6 +81,10 @@ export default function App() {
 
       {currentStep === "admin" && (
         <AdminRegistration onBack={handleBack} />
+      )}
+
+      {currentStep === "login" && (
+        <Login onBack={handleBack} onSuccess={handleLoginSuccess} />
       )}
     </>
   );

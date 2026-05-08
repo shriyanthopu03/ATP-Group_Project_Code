@@ -9,7 +9,6 @@ import { DoctorAPI } from "./API/DoctorAPI.js";
 import { adminApp as AdminAPI } from "./API/AdminAPI.js";
 import { patientApp as PatientAPI } from "./API/PatientAPI.js";
 import { commonApp as CommonAPI } from "./API/CommonAPI.js";
-import { NotificationAPI } from "./API/NotificationAPI.js";
 
 config();
 
@@ -42,7 +41,6 @@ app.use("/api", CommonAPI);
 app.use("/api", AdminAPI);
 app.use("/api", DoctorAPI);
 app.use("/api", PatientAPI);
-app.use("/api", NotificationAPI);
 
 // 404 handler
 app.use((req, res) => {
