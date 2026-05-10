@@ -1,86 +1,82 @@
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import mongoose from "mongoose";
+import exp from "express";
 import { config } from "dotenv";
-
-// Import API routers
+import { connect } from "mongoose";
 import { DoctorAPI } from "./API/DoctorAPI.js";
-import { adminApp as AdminAPI } from "./API/AdminAPI.js";
-import { patientApp as PatientAPI } from "./API/PatientAPI.js";
-import { commonApp as CommonAPI } from "./API/CommonAPI.js";
+import { adminApp } from "./API/AdminAPI.js";
+import { patientApp } from "./API/PatientAPI.js";
+import { commonApp } from "./API/CommonAPI.js";
 import { AppointmentAPI } from "./API/AppointmentAPI.js";
 import { PrescriptionAPI } from "./API/PrescriptionAPI.js";
 import { MedicalHistoryAPI } from "./API/MedicalHistoryAPI.js";
-
+import cookieParser from "cookie-parser";
+import cors from 'cors'
 config();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.DB_URL || "mongodb://localhost:27017/hospital";
-
-// Middleware
+//create express app
+const app = exp();
+//enable cors
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"],
-  credentials: true,
-}));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-
-// MongoDB Connection
-mongoose.connect(MONGO_URI)
-  .then(() => console.log("MongoDB connected successfully"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-// Health check route
-app.get("/health", (req, res) => {
-  res.status(200).json({ message: "Server is running" });
-});
-
-// API Routes
-app.use("/api", CommonAPI);
-app.use("/api", AdminAPI);
+  origin:['http://localhost:5173'],
+  credentials:true
+}))
+//add cookie parser middeleware
+app.use(cookieParser())
+//body parser middleware
+app.use(exp.json());
+//path level middlewares
+app.use("/api", commonApp);
+app.use("/api", adminApp);
 app.use("/api", DoctorAPI);
-app.use("/api", PatientAPI);
+app.use("/api", patientApp);
 app.use("/api", AppointmentAPI);
 app.use("/api", PrescriptionAPI);
 app.use("/api", MedicalHistoryAPI);
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+//connect to db
+const connectDB = async () => {
+  try {
+    await connect(process.env.DB_URL);
+    console.log("DB server connected");
+    //assign port
+    const port = process.env.PORT || 5000;
+    app.listen(port, () => console.log(`server listening on ${port}..`));
+  } catch (err) {
+    console.log("err in db connect", err);
+  }
+};
+
+connectDB();
+
+//to handle invalid path
+app.use((req, res, next) => {
+  console.log(req.url);
+  res.status(404).json({ message: `path ${req.url} is invalid` });
 });
 
-// Global error handler
+//Error handling middleware
 app.use((err, req, res, next) => {
-  console.error("Error:", err);
-
+  console.log("error is ",err)
+  console.log("Full error:", JSON.stringify(err, null, 2));
+  //ValidationError
   if (err.name === "ValidationError") {
-    const messages = Object.values(err.errors).map((e) => e.message);
-    return res.status(400).json({
-      message: "Validation error",
-      errors: messages,
+    return res.status(400).json({ message: "error occurred", error: err.message });
+  }
+  //CastError
+  if (err.name === "CastError") {
+    return res.status(400).json({ message: "error occurred", error: err.message });
+  }
+  const errCode = err.code ?? err.cause?.code ?? err.errorResponse?.code;
+  const keyValue = err.keyValue ?? err.cause?.keyValue ?? err.errorResponse?.keyValue;
+
+  if (errCode === 11000) {
+    const field = Object.keys(keyValue)[0];
+    const value = keyValue[field];
+    return res.status(409).json({
+      message: "error occurred",
+      error: `${field} "${value}" already exists`,
     });
   }
 
-  if (err.name === "MongoError" || err.code === 11000) {
-    return res.status(400).json({
-      message: "Database error",
-      error: "Duplicate key or database constraint violation",
-    });
-  }
-
-  res.status(err.status || 500).json({
-    message: err.message || "Internal server error",
-    error: process.env.NODE_ENV === "production" ? undefined : err,
-  });
+  //send server side error
+  res.status(500).json({ message: "error occurred", error: "Server side error" });
 });
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
-export default app;

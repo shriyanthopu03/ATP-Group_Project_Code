@@ -96,10 +96,11 @@ doctorApp.put("/doctors/:id", async (req, res, next) => {
 doctorApp.patch("/doctors/:id/status", async (req, res, next) => {
 	try {
 		const { isDoctorActive } = req.body;
+		const nextStatus = isDoctorActive === true || isDoctorActive === "true" || isDoctorActive === 1 || isDoctorActive === "1";
 
 		const updatedDoctor = await DoctorModel.findByIdAndUpdate(
 			req.params.id,
-			{ isDoctorActive: Boolean(isDoctorActive) },
+			{ isDoctorActive: nextStatus },
 			{
 				new: true,
 				runValidators: true,

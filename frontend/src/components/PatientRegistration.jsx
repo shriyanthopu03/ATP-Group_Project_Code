@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerPatientAccount } from "../lib/hospitalStore";
+import { useAuth } from "../store/authStore.js";
 
 
 function PatientRegistration({ onBack, onSuccess }) {
@@ -17,6 +17,7 @@ function PatientRegistration({ onBack, onSuccess }) {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const registerPatient = useAuth((state) => state.registerPatient);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,7 +51,7 @@ function PatientRegistration({ onBack, onSuccess }) {
       setLoading(true);
       // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerPatientAccount(dataToSend);
+      const response = await registerPatient(dataToSend);
       onSuccess(response);
     } catch (err) {
       setError(err.message);
@@ -59,115 +60,114 @@ function PatientRegistration({ onBack, onSuccess }) {
     }
   };
   return (
-    <div>
-       <div>
-        <div className="border-b-4">
-        <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Patient Registration</h1>
-        <p className="text-center text-gray-500 mb-2">Create your patient account</p>
-             <form className="max-w-md mx-auto mt-4" onSubmit={handleSubmit}>
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
-              {error}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            Back to Role Selection
-          </button> 
-          <input
-            type="text"
-            placeholder="First Name *"
-            value={formData.firstName}
-            onChange={handleChange}
-            name="firstName"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Last Name"
-            value={formData.lastName}
-            onChange={handleChange}
-            name="lastName"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <input
-            type="email"
-            placeholder="Email *"
-            value={formData.email}
-            onChange={handleChange}
-            name="email"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password *"
-            value={formData.password}
-            onChange={handleChange}
-            name="password"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password *"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            name="confirmPassword"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Age *"
-            value={formData.age}
-            onChange={handleChange}
-            name="age"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="tel"
-            placeholder="Phone Number *"
-            value={formData.phoneNumber}
-            onChange={handleChange}
-            name="phoneNumber"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Address *"
-            value={formData.address}
-            onChange={handleChange}
-            name="address"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
-          <input
-            type="url"
-            placeholder="Profile Image URL"
-            value={formData.profileImageUrl}
-            onChange={handleChange}
-            name="profileImageUrl"
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            {loading ? "Registering..." : "Register as Patient"}
-          </button>
-        </form>
-      </div>
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
+      <h1 className="text-4xl font-black text-gray-800 mb-2">Patient Registration</h1>
+      <p className="text-center text-gray-600 mb-4">Create your patient account</p>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        {error && (
+          <div className="rounded-2xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+        >
+          Back to Role Selection
+        </button>
+
+        <input
+          type="text"
+          placeholder="First Name *"
+          value={formData.firstName}
+          onChange={handleChange}
+          name="firstName"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="text"
+          placeholder="Last Name"
+          value={formData.lastName}
+          onChange={handleChange}
+          name="lastName"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <input
+          type="email"
+          placeholder="Email *"
+          value={formData.email}
+          onChange={handleChange}
+          name="email"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password *"
+          value={formData.password}
+          onChange={handleChange}
+          name="password"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Confirm Password *"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          name="confirmPassword"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="number"
+          placeholder="Age *"
+          value={formData.age}
+          onChange={handleChange}
+          name="age"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="tel"
+          placeholder="Phone Number *"
+          value={formData.phoneNumber}
+          onChange={handleChange}
+          name="phoneNumber"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="text"
+          placeholder="Address *"
+          value={formData.address}
+          onChange={handleChange}
+          name="address"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
+        />
+        <input
+          type="url"
+          placeholder="Profile Image URL"
+          value={formData.profileImageUrl}
+          onChange={handleChange}
+          name="profileImageUrl"
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 transition"
+        >
+          {loading ? "Registering..." : "Register as Patient"}
+        </button>
+      </form>
     </div>
-    </div>
-  )
+  );
 }
 
 export default PatientRegistration

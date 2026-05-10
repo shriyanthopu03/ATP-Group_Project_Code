@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerAdminAccount } from "../lib/hospitalStore";
+import { useAuth } from "../store/authStore.js";
 
 
 function AdminRegistration({ onBack, onSuccess }) {
@@ -14,6 +14,7 @@ function AdminRegistration({ onBack, onSuccess }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const registerAdmin = useAuth((state) => state.registerAdmin);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,8 +47,9 @@ function AdminRegistration({ onBack, onSuccess }) {
 
     try {
       setLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerAdminAccount(dataToSend);
+      const response = await registerAdmin(dataToSend);
       setSuccess("Admin registration successful");
       if (onSuccess) {
         onSuccess(response);
@@ -60,30 +62,30 @@ function AdminRegistration({ onBack, onSuccess }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-xl rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-cyan-950/20">
-      <button onClick={onBack} className="mb-4 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200">
-        Back to role selection
-      </button>
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
+      <h1 className="text-4xl font-black text-gray-800">Admin registration</h1>
+      <p className="mt-2 text-sm text-gray-600">Create an administrator account for dashboard access.</p>
 
-      <h1 className="text-4xl font-black text-white">Admin registration</h1>
-      <p className="mt-2 text-sm text-slate-400">Create an administrator account for dashboard access.</p>
+      {error && <div className="mt-4 rounded-2xl border border-red-300 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+      {success && <div className="mt-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-700">{success}</div>}
 
-      {error && <div className="mt-4 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">{error}</div>}
-      {success && <div className="mt-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</div>}
+      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+        <button type="button" onClick={onBack} className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+          Back to Role Selection
+        </button>
 
-      <form onSubmit={handleSubmit} className="mt-6 grid gap-3">
-        <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First name" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
-        <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last name" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" />
-        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
-        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
-        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm password" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none placeholder:text-slate-500" required />
+        <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First name" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
+        <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last name" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" />
+        <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
+        <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
+        <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm password" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
 
-        <button type="submit" disabled={loading} className="rounded-full bg-cyan-400 px-4 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="submit" disabled={loading} className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 transition disabled:cursor-not-allowed disabled:opacity-60">
           {loading ? "Registering..." : "Register as admin"}
         </button>
       </form>
     </div>
-  )
+  );
 }
 
 export default AdminRegistration

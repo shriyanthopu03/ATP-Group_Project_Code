@@ -1,3 +1,5 @@
+
+
 function RoleSelection({ onSelectRole, onLogin }) {
   const cards = [
     { role: "DOCTOR", title: "Doctor access", description: "Manage schedule, prescriptions, and medical history." },
@@ -6,18 +8,15 @@ function RoleSelection({ onSelectRole, onLogin }) {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-cyan-950/20 sm:p-8 lg:p-10">
+    <div className="mx-auto w-full max-w-6xl rounded-4xl border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-cyan-950/20 sm:p-8 lg:p-10">
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <section>
-          <p className="text-sm uppercase tracking-[0.35em] text-cyan-200/70">Hospital management</p>
+          <p className="text-3xl uppercase tracking-[0.35em] text-blue-900 font-bold">Hospital management</p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button onClick={onLogin} className="rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300">
+            <button onClick={onLogin} className="rounded-full bg-blue-900 px-5 py-3 text-lg font-semibold text-white transition hover:bg-blue-800">
               Login
             </button>
-            <div className="rounded-full border border-white/10 px-5 py-3 text-sm text-slate-300">
-              Demo accounts are seeded for each role
-            </div>
           </div>
         </section>
 
@@ -28,10 +27,9 @@ function RoleSelection({ onSelectRole, onLogin }) {
               onClick={() => onSelectRole(card.role)}
               className="group rounded-[1.75rem] border border-white/10 bg-white/5 p-5 text-left transition hover:-translate-y-1 hover:bg-white/10"
             >
-              <div className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200/70">{card.role}</div>
+              <div className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-900">{card.role}</div>
               <div className="mt-3 text-lg font-black text-white">{card.title}</div>
-              <p className="mt-2 text-sm leading-6 text-slate-300">{card.description}</p>
-              <div className="mt-4 text-sm font-semibold text-cyan-200 transition group-hover:text-cyan-100">Register now</div>
+              <div className="mt-4 text-sm font-semibold text-blue-900 transition group-hover:text-blue-800">Register now</div>
             </button>
           ))}
         </section>

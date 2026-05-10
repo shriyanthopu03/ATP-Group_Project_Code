@@ -3,9 +3,23 @@ import { AppointmentModel } from "../Models/AppointmentModel.js";
 
 const appointmentApp = exp.Router();
 
+const toAppointmentPayload = (body) => {
+  const patient = body.patient ?? body.patientId;
+  const doctor = body.doctor ?? body.doctorId;
+  const datetime = body.datetime || (body.appointmentDate ? new Date(`${body.appointmentDate}T${body.appointmentTime || "00:00"}:00`) : undefined);
+
+  return {
+    ...body,
+    patient,
+    doctor,
+    datetime,
+    reason: body.reason || body.notes || "",
+  };
+};
+
 appointmentApp.post("/appointments", async (req, res, next) => {
   try {
-    const data = req.body;
+    const data = toAppointmentPayload(req.body);
     const appointment = new AppointmentModel(data);
     await appointment.save();
     return res.status(201).json({ message: "Appointment created", payload: appointment });
@@ -17,8 +31,8 @@ appointmentApp.post("/appointments", async (req, res, next) => {
 appointmentApp.get("/appointments", async (req, res, next) => {
   try {
     const query = {};
-    if (req.query.patient) query.patient = req.query.patient;
-    if (req.query.doctor) query.doctor = req.query.doctor;
+    if (req.query.patient || req.query.patientId) query.patient = req.query.patient || req.query.patientId;
+    if (req.query.doctor || req.query.doctorId) query.doctor = req.query.doctor || req.query.doctorId;
     const list = await AppointmentModel.find(query).populate("patient doctor");
     return res.status(200).json({ message: "Appointments fetched", payload: list });
   } catch (err) {
@@ -38,7 +52,7 @@ appointmentApp.get("/appointments/:id", async (req, res, next) => {
 
 appointmentApp.put("/appointments/:id", async (req, res, next) => {
   try {
-    const updated = await AppointmentModel.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const updated = await AppointmentModel.findByIdAndUpdate(req.params.id, toAppointmentPayload(req.body), { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ message: "Appointment not found" });
     return res.status(200).json({ message: "Appointment updated", payload: updated });
   } catch (err) {

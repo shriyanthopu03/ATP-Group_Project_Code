@@ -1,30 +1,36 @@
-import { useState } from "react";
+import  { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useAuth } from "../Store/authStore.js";
 
 
-function Login({ onBack, onSuccess }) {
-  const [formData, setFormData] = useState({ role: "PATIENT", email: "", password: "" });
+function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const login = useAuth((state) => state.login);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      role: String(defaultRole).toUpperCase(),
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    setValue("role", String(defaultRole).toUpperCase());
+  }, [defaultRole, setValue]);
+
+  const onSubmit = async (formData) => {
     setError("");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!formData.email || !formData.password) {
-      setError("Please enter email and password");
-      return;
-    }
 
     try {
       setLoading(true);
       const response = await login(formData);
-      if (onSuccess) onSuccess(response);
+      if (onSuccess) onSuccess({ ...response, role: formData.role });
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -33,62 +39,62 @@ function Login({ onBack, onSuccess }) {
   };
 
   return (
-    <div>
-      <div className="border-b-4">
-        <h1 className="text-5xl text-center text-gray-600 font-black mb-2">Login</h1>
-        <p className="text-center text-gray-500 mb-2">Sign in with your account</p>
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
+      <h1 className="text-5xl font-black text-gray-800 mb-2">Login</h1>
+      <p className="text-center text-gray-600 mb-4">Sign in with your account</p>
 
-        <form className="max-w-md mx-auto mt-4" onSubmit={handleSubmit}>
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            Back
-          </button>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+        >
+          <span className="text-base font-bold">Back</span>
+        </button>
 
-          {error && <p className="text-red-500 text-center mb-3">{error}</p>}
+        {error && <p className="text-red-600 text-center text-sm mb-3">{error}</p>}
 
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-          >
-            <option value="DOCTOR">Doctor</option>
-            <option value="PATIENT">Patient</option>
-            <option value="ADMIN">Admin</option>
-          </select>
+        <select
+          {...register("role", {
+            onChange: () => setError(""),
+          })}
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none"
+        >
+          <option value="DOCTOR">Doctor</option>
+          <option value="PATIENT">Patient</option>
+          <option value="ADMIN">Admin</option>
+        </select>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
+        <input
+          type="email"
+          placeholder="Email"
+          {...register("email", {
+            required: "Please enter email",
+            onChange: () => setError(""),
+          })}
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="mb-3 border-2 p-3 w-full rounded-2xl"
-            required
-          />
+        <input
+          type="password"
+          placeholder="Password"
+          {...register("password", {
+            required: "Please enter password",
+            onChange: () => setError(""),
+          })}
+          className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+        />
+        {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="text-2xl rounded-2xl bg-gray-600 text-white block mx-auto p-4 mb-4 w-full"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 transition"
+        >
+          <span className="text-base font-bold">{loading ? "Signing in..." : "Sign In"}</span>
+        </button>
+      </form>
     </div>
   );
 }
