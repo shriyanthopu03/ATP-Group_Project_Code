@@ -605,7 +605,7 @@ function HospitalDashboard({ user, onLogout }) {
       ? ["overview", "patients", "doctors", "appointments", "search"]
       : userRole === "DOCTOR"
         ? ["schedule", "records", "search", "profile"]
-        : ["book", "records", "search", "profile"];
+        : ["book", "records", "profile"];
 
   const selectedMonthCells = getMonthCells(calendarMonth, myAppointments);
 
@@ -1278,17 +1278,6 @@ function HospitalDashboard({ user, onLogout }) {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
-
-        {userRole === "PATIENT" && activeTab === "search" && (
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">Search doctors and appointments</h2>
-            <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search doctors or appointments" className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-            <div className="mt-6 grid gap-6 xl:grid-cols-2">
-              <SearchPanel title="Doctors" items={filteredSearch.doctors} renderItem={(item) => `Dr. ${item.firstName} ${item.lastName} - ${item.specialization}`} />
-              <SearchPanel title="Appointments" items={filteredSearch.appointments} renderItem={(item) => `${item.appointmentDate} ${item.reason}`} />
             </div>
           </div>
         )}

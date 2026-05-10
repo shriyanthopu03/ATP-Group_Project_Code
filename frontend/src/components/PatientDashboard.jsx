@@ -2,7 +2,9 @@
 
 function PatientDashboard() {
   return (
-    <div>PatientDashboard</div>
+    <div>
+      
+    </div>
   )
 }
 

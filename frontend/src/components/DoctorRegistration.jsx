@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerDoctorAccount } from "../store/authStore";
+import { useAuth } from "../store/authStore";
 
 
 function DoctorRegistration({ onBack, onSuccess }) {
@@ -19,6 +19,7 @@ function DoctorRegistration({ onBack, onSuccess }) {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const registerDoctor = useAuth((state) => state.registerDoctor);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,7 +53,7 @@ function DoctorRegistration({ onBack, onSuccess }) {
       setLoading(true);
       // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerDoctorAccount(dataToSend);
+      const response = await registerDoctor(dataToSend);
       onSuccess(response);
     } catch (err) {
       setError(err.message);
