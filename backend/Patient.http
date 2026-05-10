@@ -1,12 +1,75 @@
-###register
-POST 
+@baseUrl = http://localhost:5000/api
+@patientId = REPLACE_WITH_PATIENT_ID
 
-###login
-GET 
+### Health check (optional)
+GET http://localhost:5000/health
 
-### EDIT
-PUT
+### Register patient
+POST {{baseUrl}}/patients
+Content-Type: application/json
 
-### DELETE
-DELETE
+{
+	"firstName": "Nisha",
+	"lastName": "Reddy",
+	"email": "nisha.patient@example.com",
+	"password": "Patient@123",
+	"age": 29,
+	"address": "12 Lake View Road",
+	"phoneNumber": "9000000002",
+	"profileImageUrl": "https://example.com/patient-nisha.jpg"
+}
+
+### Login as patient (patient-specific endpoint)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+	"email": "nisha.patient@example.com",
+	"password": "Patient@123",
+	"role": "PATIENT"
+}
+
+### Check patient auth from cookie
+GET {{baseUrl}}/check-auth
+
+### Logout patient
+GET {{baseUrl}}/logout
+
+### Get all patients
+GET {{baseUrl}}/patients
+
+### Get active patients only
+GET {{baseUrl}}/patients?active=true
+
+### Get inactive patients only
+GET {{baseUrl}}/patients?active=false
+
+### Get patient by id
+GET {{baseUrl}}/patients/{{patientId}}
+
+### Update patient by id
+PUT {{baseUrl}}/patients/{{patientId}}
+Content-Type: application/json
+
+{
+	"firstName": "Nisha",
+	"lastName": "Reddy",
+	"email": "nisha.patient@example.com",
+	"password": "Patient@123",
+	"age": 30,
+	"address": "15 Hill Street",
+	"phoneNumber": "9000000002",
+	"profileImageUrl": "https://example.com/patient-nisha-updated.jpg"
+}
+
+### Update patient status by id
+PATCH {{baseUrl}}/patients/{{patientId}}/status
+Content-Type: application/json
+
+{
+	"isPatientActive": true
+}
+
+### Deactivate patient by id (soft delete)
+DELETE {{baseUrl}}/patients/{{patientId}}
 

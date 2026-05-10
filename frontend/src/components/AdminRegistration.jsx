@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { registerAdminAccount } from "../lib/hospitalStore.js";
 
 
 function AdminRegistration({ onBack, onSuccess }) {
@@ -45,8 +46,9 @@ function AdminRegistration({ onBack, onSuccess }) {
 
     try {
       setLoading(true);
+      // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerAdmin(dataToSend);
+      const response = await registerAdminAccount(dataToSend);
       setSuccess("Admin registration successful");
       if (onSuccess) {
         onSuccess(response);
@@ -67,6 +69,10 @@ function AdminRegistration({ onBack, onSuccess }) {
       {success && <div className="mt-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-700">{success}</div>}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+        <button type="button" onClick={onBack} className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+          Back to Role Selection
+        </button>
+
         <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First name" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
         <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last name" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" />
         <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />

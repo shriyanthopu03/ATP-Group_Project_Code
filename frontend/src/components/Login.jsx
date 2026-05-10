@@ -1,29 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { authenticateUser } from "../lib/hospitalStore.js";
 
 
 function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
-  const [formData, setFormData] = useState({ role: String(defaultRole).toUpperCase(), email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      role: String(defaultRole).toUpperCase(),
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  useEffect(() => {
+    setValue("role", String(defaultRole).toUpperCase());
+  }, [defaultRole, setValue]);
+
+  const onSubmit = async (formData) => {
     setError("");
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    if (!formData.email || !formData.password) {
-      setError("Please enter email and password");
-      return;
-    }
 
     try {
       setLoading(true);
-      const response = await login(formData);
+      const response = await authenticateUser(formData);
       if (onSuccess) onSuccess(response);
     } catch (err) {
       setError(err.message || "Login failed");
@@ -37,7 +42,7 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
       <h1 className="text-4xl font-black text-gray-800 mb-2">Login</h1>
       <p className="text-center text-gray-600 mb-4">Sign in with your account</p>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
         <button
           type="button"
           onClick={onBack}
@@ -49,9 +54,9 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
         {error && <p className="text-red-600 text-center text-sm mb-3">{error}</p>}
 
         <select
-          name="role"
-          value={formData.role}
-          onChange={handleChange}
+          {...register("role", {
+            onChange: () => setError(""),
+          })}
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none"
         >
           <option value="DOCTOR">Doctor</option>
@@ -61,23 +66,25 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
 
         <input
           type="email"
-          name="email"
           placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
+          {...register("email", {
+            required: "Please enter email",
+            onChange: () => setError(""),
+          })}
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
-          required
         />
+        {errors.email && <p className="text-red-600 text-sm">{errors.email.message}</p>}
 
         <input
           type="password"
-          name="password"
           placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
+          {...register("password", {
+            required: "Please enter password",
+            onChange: () => setError(""),
+          })}
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
-          required
         />
+        {errors.password && <p className="text-red-600 text-sm">{errors.password.message}</p>}
 
         <button
           type="submit"

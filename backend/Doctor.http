@@ -1,11 +1,72 @@
-###register
-POST 
+@baseUrl = http://localhost:5000/api
+@doctorId = REPLACE_WITH_DOCTOR_ID
 
-###login
-GET 
+### Health check (optional)
+GET http://localhost:5000/health
 
-### EDIT
-PUT
+### Register doctor
+POST {{baseUrl}}/doctors
+Content-Type: application/json
 
-### DELETE
-DELETE
+{
+	"firstName": "Arun",
+	"lastName": "Kumar",
+	"email": "arun.doctor@example.com",
+	"password": "Doctor@123",
+	"age": 38,
+	"phoneNumber": "9000000001",
+	"experience": 12,
+	"specialization": "Cardiology",
+	"degree": "MBBS, MD",
+	"profileImageUrl": "https://example.com/doctor-arun.jpg"
+}
+
+### Login as doctor (common login endpoint)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+	"email": "arun.doctor@example.com",
+	"password": "Doctor@123",
+	"role": "DOCTOR"
+}
+
+### Get all doctors
+GET {{baseUrl}}/doctors
+
+### Get active doctors only
+GET {{baseUrl}}/doctors?active=true
+
+### Get inactive doctors only
+GET {{baseUrl}}/doctors?active=false
+
+### Get doctor by id
+GET {{baseUrl}}/doctors/{{doctorId}}
+
+### Update doctor by id
+PUT {{baseUrl}}/doctors/{{doctorId}}
+Content-Type: application/json
+
+{
+	"firstName": "Arun",
+	"lastName": "Kumar",
+	"email": "arun.doctor@example.com",
+	"password": "Doctor@123",
+	"age": 39,
+	"phoneNumber": "9000000001",
+	"experience": 13,
+	"specialization": "Cardiology",
+	"degree": "MBBS, MD",
+	"profileImageUrl": "https://example.com/doctor-arun-updated.jpg"
+}
+
+### Update doctor status by id
+PATCH {{baseUrl}}/doctors/{{doctorId}}/status
+Content-Type: application/json
+
+{
+	"isDoctorActive": true
+}
+
+### Deactivate doctor by id (soft delete)
+DELETE {{baseUrl}}/doctors/{{doctorId}}
