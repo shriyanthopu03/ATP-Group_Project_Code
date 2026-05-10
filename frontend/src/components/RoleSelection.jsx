@@ -6,7 +6,7 @@ function RoleSelection({ onSelectRole, onLogin }) {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-cyan-950/20 sm:p-8 lg:p-10">
+    <div className="mx-auto w-full max-w-6xl rounded-4xl border border-white/10 bg-slate-900/90 p-6 shadow-2xl shadow-cyan-950/20 sm:p-8 lg:p-10">
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <section>
           <p className="text-3xl uppercase tracking-[0.35em] text-blue-900 font-bold">Hospital management</p>

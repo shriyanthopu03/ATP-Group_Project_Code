@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { authenticateUser } from "../lib/hospitalStore.js";
+import { useAuth } from "../Store/authStore.js";
 
 
 function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const login = useAuth((state) => state.login);
   const {
     register,
     handleSubmit,
@@ -28,8 +29,8 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
 
     try {
       setLoading(true);
-      const response = await authenticateUser(formData);
-      if (onSuccess) onSuccess(response);
+      const response = await login(formData);
+      if (onSuccess) onSuccess({ ...response, role: formData.role });
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {
@@ -38,17 +39,17 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
-      <h1 className="text-4xl font-black text-gray-800 mb-2">Login</h1>
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
+      <h1 className="text-5xl font-black text-gray-800 mb-2">Login</h1>
       <p className="text-center text-gray-600 mb-4">Sign in with your account</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
         <button
           type="button"
           onClick={onBack}
-          className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
         >
-          Back
+          <span className="text-base font-bold">Back</span>
         </button>
 
         {error && <p className="text-red-600 text-center text-sm mb-3">{error}</p>}
@@ -89,9 +90,9 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-cyan-500 px-4 py-3 font-semibold text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60 transition"
+          className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 transition"
         >
-          {loading ? "Signing in..." : "Sign In"}
+          <span className="text-base font-bold">{loading ? "Signing in..." : "Sign In"}</span>
         </button>
       </form>
     </div>

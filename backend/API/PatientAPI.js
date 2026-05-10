@@ -219,10 +219,11 @@ patientApp.put("/patients/:id", async (req, res, next) => {
 patientApp.patch("/patients/:id/status", async (req, res, next) => {
 	try {
 		const { isPatientActive } = req.body;
+		const nextStatus = isPatientActive === true || isPatientActive === "true" || isPatientActive === 1 || isPatientActive === "1";
 
 		const updatedPatient = await PatientModel.findByIdAndUpdate(
 			req.params.id,
-			{ isPatientActive: Boolean(isPatientActive) },
+			{ isPatientActive: nextStatus },
 			{
 				new: true,
 				runValidators: true,

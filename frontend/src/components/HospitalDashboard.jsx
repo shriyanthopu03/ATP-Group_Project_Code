@@ -1,10 +1,180 @@
 import { useMemo, useState } from "react";
-import {
-  buildReminderMailto,
-  loadHospitalState,
-  mutateHospitalState,
-  searchHospitalEntities,
-} from "../lib/hospitalStore";
+
+const STORAGE_KEY = "hospital-portal-data-v1";
+
+const clone = (value) => JSON.parse(JSON.stringify(value));
+
+const createId = () => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const createSeedState = () => {
+  const adminId = createId();
+  const doctorId = createId();
+  const patientId = createId();
+  const appointmentId = createId();
+
+  return {
+    users: [
+      { id: adminId, role: "ADMIN", email: "admin@hospital.test", password: "demo123", firstName: "Ava", lastName: "Stone" },
+      { id: doctorId, role: "DOCTOR", email: "doctor@hospital.test", password: "demo123", firstName: "Mina", lastName: "Patel" },
+      { id: patientId, role: "PATIENT", email: "patient@hospital.test", password: "demo123", firstName: "Noah", lastName: "Reed" },
+    ],
+    patients: [
+      {
+        id: patientId,
+        firstName: "Noah",
+        lastName: "Reed",
+        email: "patient@hospital.test",
+        password: "demo123",
+        age: 34,
+        phoneNumber: "555-0123",
+        address: "14 Willow Lane",
+        profileImageUrl: "",
+        isPatientActive: true,
+      },
+    ],
+    doctors: [
+      {
+        id: doctorId,
+        firstName: "Mina",
+        lastName: "Patel",
+        email: "doctor@hospital.test",
+        password: "demo123",
+        age: 41,
+        phoneNumber: "555-0456",
+        experience: 12,
+        specialization: "Cardiology",
+        degree: "MBBS, MD",
+        profileImageUrl: "",
+        isDoctorActive: true,
+      },
+    ],
+    appointments: [
+      {
+        id: appointmentId,
+        patientId,
+        doctorId,
+        appointmentDate: new Date().toISOString().slice(0, 10),
+        appointmentTime: "10:30",
+        reason: "Follow-up consultation",
+        status: "scheduled",
+        notes: "Initial demo appointment",
+        reminderSent: false,
+      },
+    ],
+    prescriptions: [
+      {
+        id: createId(),
+        appointmentId,
+        patientId,
+        doctorId,
+        diagnosis: "Stable blood pressure",
+        medicines: [{ name: "Amlodipine", dosage: "5mg", duration: "30 days", instructions: "Take after breakfast" }],
+        notes: "Monitor daily pressure readings",
+        prescribedAt: new Date().toISOString(),
+      },
+    ],
+    histories: [
+      {
+        id: createId(),
+        patientId,
+        doctorId,
+        appointmentId,
+        condition: "Hypertension",
+        symptoms: "Headache, fatigue",
+        treatment: "Lifestyle adjustment and medication",
+        notes: "Patient responding well",
+        visitDate: new Date().toISOString(),
+      },
+    ],
+  };
+};
+
+const normalizeState = (state) => ({
+  users: Array.isArray(state?.users) ? state.users : [],
+  patients: Array.isArray(state?.patients) ? state.patients : [],
+  doctors: Array.isArray(state?.doctors) ? state.doctors : [],
+  appointments: Array.isArray(state?.appointments) ? state.appointments : [],
+  prescriptions: Array.isArray(state?.prescriptions) ? state.prescriptions : [],
+  histories: Array.isArray(state?.histories) ? state.histories : [],
+});
+
+const loadHospitalState = () => {
+  if (typeof window === "undefined") {
+    return createSeedState();
+  }
+
+  const rawState = window.localStorage.getItem(STORAGE_KEY);
+
+  if (!rawState) {
+    const seed = createSeedState();
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+    return seed;
+  }
+
+  try {
+    return normalizeState(JSON.parse(rawState));
+  } catch {
+    const seed = createSeedState();
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(seed));
+    return seed;
+  }
+};
+
+const saveHospitalState = (state) => {
+  if (typeof window === "undefined") {
+    return state;
+  }
+
+  const normalizedState = normalizeState(state);
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedState));
+  return normalizedState;
+};
+
+const mutateHospitalState = (updater) => {
+  const currentState = loadHospitalState();
+  const draftState = clone(currentState);
+  const nextState = updater(draftState) || draftState;
+  return saveHospitalState(nextState);
+};
+
+const searchHospitalEntities = (state, query) => {
+  const normalizedQuery = String(query || "").trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return { patients: [], doctors: [], appointments: [] };
+  }
+
+  const contains = (value) => String(value || "").toLowerCase().includes(normalizedQuery);
+
+  const patients = state.patients.filter((patient) =>
+    [patient.firstName, patient.lastName, patient.email, patient.phoneNumber, patient.address].some(contains),
+  );
+  const doctors = state.doctors.filter((doctor) =>
+    [doctor.firstName, doctor.lastName, doctor.email, doctor.phoneNumber, doctor.specialization, doctor.degree].some(contains),
+  );
+  const appointments = state.appointments.filter((appointment) =>
+    [appointment.reason, appointment.notes, appointment.status, appointment.appointmentDate, appointment.appointmentTime].some(contains),
+  );
+
+  return { patients, doctors, appointments };
+};
+
+const buildReminderMailto = (appointment, state) => {
+  const patient = state.patients.find((entry) => entry.id === appointment.patientId);
+  const doctor = state.doctors.find((entry) => entry.id === appointment.doctorId);
+  const subject = encodeURIComponent("Appointment Reminder");
+  const body = encodeURIComponent(
+    `Hello ${patient?.firstName || "there"},\n\nThis is a reminder for your appointment with ${doctor?.firstName || "your doctor"} ${doctor?.lastName || ""} on ${appointment.appointmentDate} at ${appointment.appointmentTime}.\n\nReason: ${appointment.reason}\n\nThank you.`,
+  );
+
+  return `mailto:${patient?.email || ""}?subject=${subject}&body=${body}`;
+};
 
 const emptyPatient = {
   firstName: "",
@@ -62,6 +232,17 @@ const emptyHistory = {
   notes: "",
 };
 
+const buildPatientProfileForm = (patient = {}) => ({
+  firstName: patient.firstName || "",
+  lastName: patient.lastName || "",
+  email: patient.email || "",
+  password: patient.password || "",
+  age: patient.age ?? "",
+  phoneNumber: patient.phoneNumber || "",
+  address: patient.address || "",
+  profileImageUrl: patient.profileImageUrl || "",
+});
+
 const formatDate = (dateValue) =>
   new Date(dateValue).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 
@@ -105,8 +286,9 @@ const EntityPill = ({ label, value }) => (
 );
 
 function HospitalDashboard({ user, onLogout }) {
+  const userRole = String(user?.role || "PATIENT").toUpperCase();
   const [state, setState] = useState(() => loadHospitalState());
-  const [activeTab, setActiveTab] = useState(user.role === "ADMIN" ? "overview" : user.role === "DOCTOR" ? "schedule" : "book");
+  const [activeTab, setActiveTab] = useState(userRole === "ADMIN" ? "overview" : userRole === "DOCTOR" ? "schedule" : "book");
   const [searchQuery, setSearchQuery] = useState("");
   const [calendarMonth, setCalendarMonth] = useState(formatMonthValue(new Date()));
   const [selectedDay, setSelectedDay] = useState("");
@@ -120,48 +302,60 @@ function HospitalDashboard({ user, onLogout }) {
   const [appointmentForm, setAppointmentForm] = useState({ ...emptyAppointment, patientId: user.role === "PATIENT" ? user.id : "" });
   const [prescriptionForm, setPrescriptionForm] = useState(emptyPrescription);
   const [historyForm, setHistoryForm] = useState(emptyHistory);
+  const [patientProfileForm, setPatientProfileForm] = useState(() => {
+    if (userRole !== "PATIENT") {
+      return buildPatientProfileForm({});
+    }
+
+    const persistedPatient = loadHospitalState().patients.find((entry) => entry.id === user.id);
+    return buildPatientProfileForm(persistedPatient || user);
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const refreshState = () => setState(loadHospitalState());
 
   const currentUser = useMemo(() => {
-    if (user.role === "PATIENT") {
+    if (userRole === "PATIENT") {
       return state.patients.find((entry) => entry.id === user.id) || user;
     }
 
-    if (user.role === "DOCTOR") {
+    if (userRole === "DOCTOR") {
       return state.doctors.find((entry) => entry.id === user.id) || user;
     }
 
     return user;
-  }, [state, user]);
+  }, [state, user, userRole]);
 
   const filteredSearch = useMemo(() => searchHospitalEntities(state, searchQuery), [state, searchQuery]);
 
   const myAppointments = useMemo(() => {
-    if (user.role === "PATIENT") {
+    if (userRole === "PATIENT") {
       return state.appointments.filter((entry) => entry.patientId === user.id);
     }
 
-    if (user.role === "DOCTOR") {
+    if (userRole === "DOCTOR") {
       return state.appointments.filter((entry) => entry.doctorId === user.id);
     }
 
     return state.appointments;
-  }, [state.appointments, user]);
+  }, [state.appointments, user, userRole]);
 
   const calendarAppointments = useMemo(() => {
     const monthAppointments = myAppointments.filter((entry) => entry.appointmentDate.startsWith(calendarMonth));
     return selectedDay ? monthAppointments.filter((entry) => entry.appointmentDate === selectedDay) : monthAppointments;
   }, [calendarMonth, myAppointments, selectedDay]);
 
-  const stats = useMemo(
-    () => [
-      { label: "Patients", value: state.patients.length },
-      { label: "Doctors", value: state.doctors.length },
-      { label: "Appointments", value: state.appointments.length },
-      { label: "Records", value: state.prescriptions.length + state.histories.length },
-    ],
-    [state],
+  const upcomingAppointments = useMemo(
+    () =>
+      [...myAppointments]
+        .filter((entry) => entry.appointmentDate >= new Date().toISOString().slice(0, 10))
+        .sort((left, right) => {
+          const leftDate = new Date(`${left.appointmentDate}T${left.appointmentTime || "00:00"}`);
+          const rightDate = new Date(`${right.appointmentDate}T${right.appointmentTime || "00:00"}`);
+          return leftDate - rightDate;
+        })
+        .slice(0, 4),
+    [myAppointments],
   );
 
   const resetPatientForm = () => {
@@ -345,6 +539,47 @@ function HospitalDashboard({ user, onLogout }) {
     resetHistoryForm();
   };
 
+  const savePatientProfile = (event) => {
+    event.preventDefault();
+
+    if (userRole !== "PATIENT") {
+      return;
+    }
+
+    mutateHospitalState((draft) => {
+      draft.patients = draft.patients.map((entry) =>
+        entry.id === user.id
+          ? {
+              ...entry,
+              firstName: patientProfileForm.firstName,
+              lastName: patientProfileForm.lastName,
+              password: patientProfileForm.password || entry.password,
+              age: Number(patientProfileForm.age),
+              phoneNumber: patientProfileForm.phoneNumber,
+              address: patientProfileForm.address,
+              profileImageUrl: patientProfileForm.profileImageUrl,
+            }
+          : entry,
+      );
+
+      draft.users = draft.users.map((entry) =>
+        entry.id === user.id
+          ? {
+              ...entry,
+              firstName: patientProfileForm.firstName,
+              lastName: patientProfileForm.lastName,
+              password: patientProfileForm.password || entry.password,
+            }
+          : entry,
+      );
+
+      return draft;
+    });
+
+    refreshState();
+    setIsEditingProfile(false);
+  };
+
   const updateAppointmentStatus = (appointmentId, status) => {
     mutateHospitalState((draft) => {
       draft.appointments = draft.appointments.map((entry) => (entry.id === appointmentId ? { ...entry, status } : entry));
@@ -362,13 +597,13 @@ function HospitalDashboard({ user, onLogout }) {
       return draft;
     });
     refreshState();
-    window.location.href = mailto;
+    window.location.assign(mailto);
   };
 
   const tabs =
-    user.role === "ADMIN"
+    userRole === "ADMIN"
       ? ["overview", "patients", "doctors", "appointments", "search"]
-      : user.role === "DOCTOR"
+      : userRole === "DOCTOR"
         ? ["schedule", "records", "search", "profile"]
         : ["book", "records", "search", "profile"];
 
@@ -377,38 +612,65 @@ function HospitalDashboard({ user, onLogout }) {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-6 rounded-[2rem] border border-white/10 bg-gradient-to-r from-cyan-500/20 via-slate-900 to-emerald-500/20 p-6 shadow-2xl shadow-cyan-950/20 backdrop-blur">
+        <header className="mb-6 rounded-4xl border border-white/10 bg-linear-to-r from-cyan-500/20 via-slate-900 to-emerald-500/20 p-6 shadow-2xl shadow-cyan-950/20 backdrop-blur">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.35em] text-cyan-200/70">Hospital portal</p>
+              <p className="text-sm uppercase tracking-[0.35em] text-blue-900">Hospital portal</p>
               <h1 className="mt-2 text-3xl font-black sm:text-4xl">
-                {currentUser.firstName || currentUser.email}, your {user.role.toLowerCase()} dashboard
+                {currentUser.firstName || currentUser.email}, your {userRole.toLowerCase()} dashboard
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-300">
-                Manage patients, doctors, appointments, calendar scheduling, prescriptions, medical history, and appointment reminders in one place.
-              </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200">
-                {user.role}
+              <div className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white">
+                {userRole}
               </div>
               <button
                 onClick={onLogout}
-                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200"
+                className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-800"
               >
                 Logout
               </button>
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm text-slate-300">{stat.label}</p>
-                <p className="mt-1 text-3xl font-black text-white">{stat.value}</p>
+          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-900/80 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black text-white">Upcoming appointments</h2>
+                <p className="text-sm text-slate-400">Your next scheduled visits in one place.</p>
               </div>
-            ))}
+              {userRole === "PATIENT" && (
+                <button onClick={() => setActiveTab("book")} className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+                  Book appointment
+                </button>
+              )}
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {upcomingAppointments.length > 0 ? (
+                upcomingAppointments.map((appointment) => {
+                  const patient = state.patients.find((entry) => entry.id === appointment.patientId);
+                  const doctor = state.doctors.find((entry) => entry.id === appointment.doctorId);
+
+                  return (
+                    <div key={appointment.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <p className="text-sm text-slate-300">{appointment.appointmentDate}</p>
+                      <p className="mt-1 text-lg font-bold text-white">{appointment.appointmentTime}</p>
+                      <p className="mt-1 text-sm text-slate-300">
+                        {userRole === "PATIENT"
+                          ? `Dr. ${doctor?.firstName || "Doctor"} ${doctor?.lastName || ""}`
+                          : `${patient?.firstName || "Patient"} ${patient?.lastName || ""}`}
+                      </p>
+                      <p className="mt-2 text-xs text-slate-400">{appointment.reason || "No reason added"}</p>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-4 text-sm text-slate-400 md:col-span-2 xl:col-span-4">
+                  No upcoming appointments yet.
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -418,7 +680,7 @@ function HospitalDashboard({ user, onLogout }) {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`rounded-full px-4 py-2 text-sm font-semibold capitalize transition ${
-                activeTab === tab ? "bg-cyan-400 text-slate-950" : "text-slate-300 hover:bg-white/10"
+                activeTab === tab ? "bg-blue-900 text-white" : "text-slate-300 hover:bg-white/10"
               }`}
             >
               {tab}
@@ -426,15 +688,15 @@ function HospitalDashboard({ user, onLogout }) {
           ))}
         </nav>
 
-        {user.role === "ADMIN" && activeTab === "overview" && (
+        {userRole === "ADMIN" && activeTab === "overview" && (
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-black">System overview</h2>
                   <p className="text-sm text-slate-400">Latest activity across patients, doctors, and scheduling.</p>
                 </div>
-                <button onClick={() => setActiveTab("appointments")} className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950">
+                <button onClick={() => setActiveTab("appointments")} className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
                   Schedule
                 </button>
               </div>
@@ -445,9 +707,9 @@ function HospitalDashboard({ user, onLogout }) {
                 <EntityPill label="Prescriptions" value={state.prescriptions.length} />
                 <EntityPill label="Medical logs" value={state.histories.length} />
               </div>
-            </section>
+            </div>
 
-            <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Upcoming appointments</h2>
               <div className="mt-4 space-y-3">
                 {state.appointments.slice(0, 5).map((appointment) => (
@@ -462,13 +724,13 @@ function HospitalDashboard({ user, onLogout }) {
                   </div>
                 ))}
               </div>
-            </section>
+            </div>
           </div>
         )}
 
-        {user.role === "ADMIN" && activeTab === "patients" && (
-          <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <form onSubmit={savePatient} className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "ADMIN" && activeTab === "patients" && (
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <form onSubmit={savePatient} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">{editingPatientId ? "Edit patient" : "Add patient"}</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {Object.entries(patientForm).map(([key, value]) => (
@@ -483,7 +745,7 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
               <div className="mt-4 flex gap-3">
-                <button className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950" type="submit">
+                <button className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" type="submit">
                   {editingPatientId ? "Update patient" : "Create patient"}
                 </button>
                 {editingPatientId && (
@@ -494,7 +756,7 @@ function HospitalDashboard({ user, onLogout }) {
               </div>
             </form>
 
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Patients</h2>
               <div className="mt-4 space-y-3">
                 {state.patients.map((patient) => (
@@ -542,12 +804,12 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "ADMIN" && activeTab === "doctors" && (
-          <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <form onSubmit={saveDoctor} className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "ADMIN" && activeTab === "doctors" && (
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <form onSubmit={saveDoctor} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">{editingDoctorId ? "Edit doctor" : "Add doctor"}</h2>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {Object.entries(doctorForm).map(([key, value]) => (
@@ -562,7 +824,7 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
               <div className="mt-4 flex gap-3">
-                <button className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950" type="submit">
+                <button className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" type="submit">
                   {editingDoctorId ? "Update doctor" : "Create doctor"}
                 </button>
                 {editingDoctorId && (
@@ -573,7 +835,7 @@ function HospitalDashboard({ user, onLogout }) {
               </div>
             </form>
 
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Specialization management</h2>
               <div className="mt-4 space-y-3">
                 {state.doctors.map((doctor) => (
@@ -621,12 +883,12 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "ADMIN" && activeTab === "appointments" && (
-          <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <form onSubmit={saveAppointment} className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "ADMIN" && activeTab === "appointments" && (
+          <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+            <form onSubmit={saveAppointment} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">{editingAppointmentId ? "Edit appointment" : "Schedule appointment"}</h2>
               <div className="mt-4 grid gap-3">
                 <select
@@ -680,7 +942,7 @@ function HospitalDashboard({ user, onLogout }) {
                 />
               </div>
               <div className="mt-4 flex gap-3">
-                <button className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950" type="submit">
+                <button className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" type="submit">
                   {editingAppointmentId ? "Update appointment" : "Create appointment"}
                 </button>
                 {editingAppointmentId && (
@@ -691,7 +953,7 @@ function HospitalDashboard({ user, onLogout }) {
               </div>
             </form>
 
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-black">Appointment calendar</h2>
@@ -717,7 +979,7 @@ function HospitalDashboard({ user, onLogout }) {
                       key={cell.currentDate}
                       onClick={() => setSelectedDay(cell.currentDate)}
                       className={`min-h-24 rounded-2xl border p-2 text-left transition ${
-                        selectedDay === cell.currentDate ? "border-cyan-300 bg-cyan-400/20" : "border-white/10 bg-white/5 hover:bg-white/10"
+                        selectedDay === cell.currentDate ? "border-blue-300 bg-blue-900/20" : "border-white/10 bg-white/5 hover:bg-white/10"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -784,11 +1046,11 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "ADMIN" && activeTab === "search" && (
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "ADMIN" && activeTab === "search" && (
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
             <h2 className="text-2xl font-black">Search patients, doctors, appointments</h2>
             <input
               type="search"
@@ -803,12 +1065,12 @@ function HospitalDashboard({ user, onLogout }) {
               <SearchPanel title="Doctors" items={filteredSearch.doctors} renderItem={(item) => `Dr. ${item.firstName} ${item.lastName} - ${item.specialization}`} />
               <SearchPanel title="Appointments" items={filteredSearch.appointments} renderItem={(item) => `${item.appointmentDate} ${item.appointmentTime} - ${item.reason}`} />
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "DOCTOR" && activeTab === "schedule" && (
-          <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "DOCTOR" && activeTab === "schedule" && (
+          <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-black">My schedule</h2>
@@ -833,7 +1095,7 @@ function HospitalDashboard({ user, onLogout }) {
                       key={cell.currentDate}
                       onClick={() => setSelectedDay(cell.currentDate)}
                       className={`min-h-24 rounded-2xl border p-2 text-left transition ${
-                        selectedDay === cell.currentDate ? "border-cyan-300 bg-cyan-400/20" : "border-white/10 bg-white/5 hover:bg-white/10"
+                        selectedDay === cell.currentDate ? "border-blue-300 bg-blue-900/20" : "border-white/10 bg-white/5 hover:bg-white/10"
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -848,7 +1110,7 @@ function HospitalDashboard({ user, onLogout }) {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Today&apos;s patients and records</h2>
               <div className="mt-4 space-y-3">
                 {myAppointments.map((appointment) => (
@@ -858,7 +1120,7 @@ function HospitalDashboard({ user, onLogout }) {
                     </p>
                     <p className="text-sm text-slate-300">{appointment.appointmentDate} at {appointment.appointmentTime}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <button onClick={() => setActiveTab("records")} className="rounded-full bg-cyan-400 px-3 py-1 text-xs font-semibold text-slate-950">
+                      <button onClick={() => setActiveTab("records")} className="rounded-full bg-blue-900 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-800">
                         Add record
                       </button>
                       <button onClick={() => sendReminder(appointment)} className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-200">
@@ -869,12 +1131,12 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "DOCTOR" && activeTab === "records" && (
-          <section className="grid gap-6 xl:grid-cols-2">
-            <form onSubmit={savePrescription} className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "DOCTOR" && activeTab === "records" && (
+          <div className="grid gap-6 xl:grid-cols-2">
+            <form onSubmit={savePrescription} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Prescriptions</h2>
               <div className="mt-4 grid gap-3">
                 <select value={prescriptionForm.patientId} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, patientId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
@@ -898,10 +1160,10 @@ function HospitalDashboard({ user, onLogout }) {
                 <input value={prescriptionForm.instructions} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, instructions: event.target.value }))} placeholder="Instructions" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
                 <textarea value={prescriptionForm.notes} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Notes" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
               </div>
-              <button type="submit" className="mt-4 rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950">{editingPrescriptionId ? "Update prescription" : "Save prescription"}</button>
+              <button type="submit" className="mt-4 rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">{editingPrescriptionId ? "Update prescription" : "Save prescription"}</button>
             </form>
 
-            <form onSubmit={saveHistory} className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <form onSubmit={saveHistory} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Medical history logs</h2>
               <div className="mt-4 grid gap-3">
                 <select value={historyForm.patientId} onChange={(event) => setHistoryForm((prev) => ({ ...prev, patientId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
@@ -921,10 +1183,10 @@ function HospitalDashboard({ user, onLogout }) {
                 <textarea value={historyForm.treatment} onChange={(event) => setHistoryForm((prev) => ({ ...prev, treatment: event.target.value }))} placeholder="Treatment" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
                 <textarea value={historyForm.notes} onChange={(event) => setHistoryForm((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Notes" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
               </div>
-              <button type="submit" className="mt-4 rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950">{editingHistoryId ? "Update history" : "Save history"}</button>
+              <button type="submit" className="mt-4 rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">{editingHistoryId ? "Update history" : "Save history"}</button>
             </form>
 
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 xl:col-span-2">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6 xl:col-span-2">
               <h2 className="text-2xl font-black">Prescription and history log book</h2>
               <div className="mt-4 grid gap-4 xl:grid-cols-2">
                 <div className="space-y-3">
@@ -945,11 +1207,11 @@ function HospitalDashboard({ user, onLogout }) {
                 </div>
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "DOCTOR" && activeTab === "search" && (
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "DOCTOR" && activeTab === "search" && (
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
             <h2 className="text-2xl font-black">Search</h2>
             <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search patients, doctors, appointments" className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
             <div className="mt-6 grid gap-6 xl:grid-cols-3">
@@ -957,23 +1219,23 @@ function HospitalDashboard({ user, onLogout }) {
               <SearchPanel title="Doctors" items={filteredSearch.doctors} renderItem={(item) => `Dr. ${item.firstName} ${item.lastName}`} />
               <SearchPanel title="Appointments" items={filteredSearch.appointments} renderItem={(item) => `${item.appointmentDate} ${item.reason}`} />
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "DOCTOR" && activeTab === "profile" && (
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "DOCTOR" && activeTab === "profile" && (
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
             <h2 className="text-2xl font-black">Doctor profile</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               <EntityPill label="Name" value={`${currentUser.firstName} ${currentUser.lastName}`} />
               <EntityPill label="Specialization" value={currentUser.specialization} />
               <EntityPill label="Degree" value={currentUser.degree} />
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "PATIENT" && activeTab === "book" && (
-          <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-            <form onSubmit={saveAppointment} className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "PATIENT" && activeTab === "book" && (
+          <div className="max-w-2xl">
+            <form onSubmit={saveAppointment} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Book appointment</h2>
               <div className="mt-4 grid gap-3">
                 <select value={appointmentForm.doctorId} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, doctorId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
@@ -987,35 +1249,14 @@ function HospitalDashboard({ user, onLogout }) {
                 <input type="text" placeholder="Reason" value={appointmentForm.reason} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, reason: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
                 <textarea placeholder="Notes" value={appointmentForm.notes} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, notes: event.target.value }))} className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
               </div>
-              <button type="submit" className="mt-4 rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950">Book now</button>
+              <button type="submit" className="mt-4 rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Book now</button>
             </form>
-
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-black">Upcoming appointments</h2>
-                  <p className="text-sm text-slate-400">Your schedule and reminder status.</p>
-                </div>
-                <button onClick={() => setActiveTab("records")} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200">
-                  View records
-                </button>
-              </div>
-              <div className="mt-4 space-y-3">
-                {myAppointments.map((appointment) => (
-                  <div key={appointment.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="font-semibold text-white">{appointment.appointmentDate} at {appointment.appointmentTime}</p>
-                    <p className="text-sm text-slate-300">{appointment.reason}</p>
-                    <p className="text-xs text-slate-400">Reminder {appointment.reminderSent ? "sent" : "not sent"}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "PATIENT" && activeTab === "records" && (
-          <section className="grid gap-6 xl:grid-cols-2">
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "PATIENT" && activeTab === "records" && (
+          <div className="grid gap-6 xl:grid-cols-2">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Medical history</h2>
               <div className="mt-4 space-y-3">
                 {state.histories.filter((entry) => entry.patientId === user.id).map((entry) => (
@@ -1027,7 +1268,7 @@ function HospitalDashboard({ user, onLogout }) {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+            <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
               <h2 className="text-2xl font-black">Prescriptions</h2>
               <div className="mt-4 space-y-3">
                 {state.prescriptions.filter((entry) => entry.patientId === user.id).map((entry) => (
@@ -1038,29 +1279,159 @@ function HospitalDashboard({ user, onLogout }) {
                 ))}
               </div>
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "PATIENT" && activeTab === "search" && (
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
+        {userRole === "PATIENT" && activeTab === "search" && (
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
             <h2 className="text-2xl font-black">Search doctors and appointments</h2>
             <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search doctors or appointments" className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
             <div className="mt-6 grid gap-6 xl:grid-cols-2">
               <SearchPanel title="Doctors" items={filteredSearch.doctors} renderItem={(item) => `Dr. ${item.firstName} ${item.lastName} - ${item.specialization}`} />
               <SearchPanel title="Appointments" items={filteredSearch.appointments} renderItem={(item) => `${item.appointmentDate} ${item.reason}`} />
             </div>
-          </section>
+          </div>
         )}
 
-        {user.role === "PATIENT" && activeTab === "profile" && (
-          <section className="rounded-[2rem] border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">Patient profile</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <EntityPill label="Name" value={`${currentUser.firstName} ${currentUser.lastName}`} />
-              <EntityPill label="Email" value={currentUser.email} />
-              <EntityPill label="Phone" value={currentUser.phoneNumber} />
+        {userRole === "PATIENT" && activeTab === "profile" && (
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-2xl font-black">Patient profile</h2>
+                <p className="text-sm text-slate-400">Edit your patient details here. Email stays read-only.</p>
+              </div>
+              <div className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white">
+                {currentUser.isPatientActive ? "Active" : "Inactive"}
+              </div>
             </div>
-          </section>
+
+            { !isEditingProfile ? (
+              <div className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+                <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-900 text-2xl font-black text-white">
+                      {(currentUser.firstName?.[0] || "P") + (currentUser.lastName?.[0] || "")}
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-white">{currentUser.firstName} {currentUser.lastName}</p>
+                      <p className="text-sm text-slate-400">Patient ID: {currentUser.id}</p>
+                    </div>
+                  </div>
+
+                  {currentUser.profileImageUrl ? (
+                    <img src={currentUser.profileImageUrl} alt={`${currentUser.firstName} ${currentUser.lastName}`} className="mt-5 h-56 w-full rounded-3xl object-cover" />
+                  ) : (
+                    <div className="mt-5 flex h-56 items-center justify-center rounded-3xl border border-dashed border-white/10 text-sm text-slate-400">
+                      No profile image provided.
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <EntityPill label="First name" value={currentUser.firstName || "-"} />
+                  <EntityPill label="Last name" value={currentUser.lastName || "-"} />
+                  <EntityPill label="Email" value={currentUser.email || "-"} />
+                  <EntityPill label="Phone number" value={currentUser.phoneNumber || "-"} />
+                  <EntityPill label="Age" value={currentUser.age || "-"} />
+                  <EntityPill label="Address" value={currentUser.address || "-"} />
+                  <div className="sm:col-span-2 flex justify-end">
+                    <button onClick={() => setIsEditingProfile(true)} className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Update profile</button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+            <form onSubmit={savePatientProfile} className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-900 text-2xl font-black text-white">
+                    {(patientProfileForm.firstName?.[0] || "P") + (patientProfileForm.lastName?.[0] || "")}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-white">{patientProfileForm.firstName || "Patient"} {patientProfileForm.lastName || ""}</p>
+                    <p className="text-sm text-slate-400">Patient ID: {currentUser.id}</p>
+                  </div>
+                </div>
+
+                {patientProfileForm.profileImageUrl ? (
+                  <img src={patientProfileForm.profileImageUrl} alt={`${patientProfileForm.firstName} ${patientProfileForm.lastName}`} className="mt-5 h-56 w-full rounded-3xl object-cover" />
+                ) : (
+                  <div className="mt-5 flex h-56 items-center justify-center rounded-3xl border border-dashed border-white/10 text-sm text-slate-400">Add a profile image URL to preview it here.</div>
+                )}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <input
+                  value={patientProfileForm.firstName}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, firstName: event.target.value }))}
+                  placeholder="First name"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+                <input
+                  value={patientProfileForm.lastName}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, lastName: event.target.value }))}
+                  placeholder="Last name"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+                <input
+                  value={patientProfileForm.email}
+                  readOnly
+                  placeholder="Email"
+                  className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-slate-400 outline-none"
+                />
+                <input
+                  type="password"
+                  value={patientProfileForm.password}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, password: event.target.value }))}
+                  placeholder="Password"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+                <input
+                  type="number"
+                  value={patientProfileForm.age}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, age: event.target.value }))}
+                  placeholder="Age"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+                <input
+                  value={patientProfileForm.phoneNumber}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, phoneNumber: event.target.value }))}
+                  placeholder="Phone number"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+                <input
+                  value={patientProfileForm.address}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, address: event.target.value }))}
+                  placeholder="Address"
+                  className="sm:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+                <input
+                  value={patientProfileForm.profileImageUrl}
+                  onChange={(event) => setPatientProfileForm((prev) => ({ ...prev, profileImageUrl: event.target.value }))}
+                  placeholder="Profile image URL"
+                  className="sm:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                />
+
+                <div className="sm:col-span-2 flex items-center gap-3">
+                  <button type="submit" className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+                    Update
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // revert draft to persisted values
+                      const stored = loadHospitalState().patients.find((entry) => entry.id === user.id) || currentUser;
+                      setPatientProfileForm(buildPatientProfileForm(stored));
+                      setIsEditingProfile(false);
+                    }}
+                    className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+            )}
+          </div>
         )}
       </div>
     </div>

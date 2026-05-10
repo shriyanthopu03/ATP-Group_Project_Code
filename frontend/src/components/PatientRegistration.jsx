@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerPatientAccount } from "../lib/hospitalStore.js";
+import { useAuth } from "../Store/authStore.js";
 
 
 function PatientRegistration({ onBack, onSuccess }) {
@@ -17,6 +17,7 @@ function PatientRegistration({ onBack, onSuccess }) {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const registerPatient = useAuth((state) => state.registerPatient);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,7 +51,7 @@ function PatientRegistration({ onBack, onSuccess }) {
       setLoading(true);
       // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerPatientAccount(dataToSend);
+      const response = await registerPatient(dataToSend);
       onSuccess(response);
     } catch (err) {
       setError(err.message);
@@ -59,7 +60,7 @@ function PatientRegistration({ onBack, onSuccess }) {
     }
   };
   return (
-    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
       <h1 className="text-4xl font-black text-gray-800 mb-2">Patient Registration</h1>
       <p className="text-center text-gray-600 mb-4">Create your patient account</p>
 
@@ -73,7 +74,7 @@ function PatientRegistration({ onBack, onSuccess }) {
         <button
           type="button"
           onClick={onBack}
-          className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
         >
           Back to Role Selection
         </button>
@@ -160,7 +161,7 @@ function PatientRegistration({ onBack, onSuccess }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-cyan-500 px-4 py-3 font-semibold text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60 transition"
+          className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 transition"
         >
           {loading ? "Registering..." : "Register as Patient"}
         </button>

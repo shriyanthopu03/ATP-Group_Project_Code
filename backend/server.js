@@ -1,16 +1,15 @@
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import mongoose from "mongoose";
+import exp from "express";
 import { config } from "dotenv";
+import { connect } from "mongoose";
 import { DoctorAPI } from "./API/DoctorAPI.js";
-import { adminApp} from "./API/AdminAPI.js";
-import { patientApp} from "./API/PatientAPI.js";
-import { commonApp} from "./API/CommonAPI.js";
+import { adminApp } from "./API/AdminAPI.js";
+import { patientApp } from "./API/PatientAPI.js";
+import { commonApp } from "./API/CommonAPI.js";
 import { AppointmentAPI } from "./API/AppointmentAPI.js";
 import { PrescriptionAPI } from "./API/PrescriptionAPI.js";
 import { MedicalHistoryAPI } from "./API/MedicalHistoryAPI.js";
-
+import cookieParser from "cookie-parser";
+import cors from 'cors'
 config();
 
 //create express app
@@ -25,10 +24,13 @@ app.use(cookieParser())
 //body parser middleware
 app.use(exp.json());
 //path level middlewares
-
-
-
-
+app.use("/api", commonApp);
+app.use("/api", adminApp);
+app.use("/api", DoctorAPI);
+app.use("/api", patientApp);
+app.use("/api", AppointmentAPI);
+app.use("/api", PrescriptionAPI);
+app.use("/api", MedicalHistoryAPI);
 
 //connect to db
 const connectDB = async () => {
@@ -78,5 +80,3 @@ app.use((err, req, res, next) => {
   //send server side error
   res.status(500).json({ message: "error occurred", error: "Server side error" });
 });
-
-

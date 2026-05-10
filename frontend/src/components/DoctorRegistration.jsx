@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerDoctorAccount } from "../lib/hospitalStore.js";
+import { registerDoctorAccount } from "../store/authStore";
 
 
 function DoctorRegistration({ onBack, onSuccess }) {
@@ -70,7 +70,7 @@ function DoctorRegistration({ onBack, onSuccess }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
       <h1 className="text-4xl font-black text-gray-800 mb-2">Doctor Registration</h1>
       <p className="text-center text-gray-600 mb-4">Create your doctor account</p>
 
@@ -78,7 +78,7 @@ function DoctorRegistration({ onBack, onSuccess }) {
         <button
           type="button"
           onClick={onBack}
-          className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
         >
           Back to Role Selection
         </button>
@@ -181,7 +181,7 @@ function DoctorRegistration({ onBack, onSuccess }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-cyan-500 px-4 py-3 font-semibold text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-60 transition"
+          className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 transition"
         >
           {loading ? "Registering..." : "Register as Doctor"}
         </button>

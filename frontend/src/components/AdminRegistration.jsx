@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerAdminAccount } from "../lib/hospitalStore.js";
+import { useAuth } from "../Store/authStore.js";
 
 
 function AdminRegistration({ onBack, onSuccess }) {
@@ -14,6 +14,7 @@ function AdminRegistration({ onBack, onSuccess }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const registerAdmin = useAuth((state) => state.registerAdmin);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,7 +49,7 @@ function AdminRegistration({ onBack, onSuccess }) {
       setLoading(true);
       // eslint-disable-next-line no-unused-vars
       const { confirmPassword, ...dataToSend } = formData;
-      const response = await registerAdminAccount(dataToSend);
+      const response = await registerAdmin(dataToSend);
       setSuccess("Admin registration successful");
       if (onSuccess) {
         onSuccess(response);
@@ -61,7 +62,7 @@ function AdminRegistration({ onBack, onSuccess }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-[2rem] border border-gray-200 bg-white p-6 shadow-lg">
+    <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
       <h1 className="text-4xl font-black text-gray-800">Admin registration</h1>
       <p className="mt-2 text-sm text-gray-600">Create an administrator account for dashboard access.</p>
 
@@ -69,7 +70,7 @@ function AdminRegistration({ onBack, onSuccess }) {
       {success && <div className="mt-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-700">{success}</div>}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-        <button type="button" onClick={onBack} className="w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+        <button type="button" onClick={onBack} className="w-full rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
           Back to Role Selection
         </button>
 
@@ -79,7 +80,7 @@ function AdminRegistration({ onBack, onSuccess }) {
         <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
         <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm password" className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500" required />
 
-        <button type="submit" disabled={loading} className="w-full rounded-full bg-cyan-500 px-4 py-3 font-semibold text-white hover:bg-cyan-600 transition disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="submit" disabled={loading} className="w-full rounded-full bg-blue-900 px-4 py-3 font-semibold text-white hover:bg-blue-800 transition disabled:cursor-not-allowed disabled:opacity-60">
           {loading ? "Registering..." : "Register as admin"}
         </button>
       </form>

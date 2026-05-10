@@ -3,15 +3,25 @@ import { MedicalHistoryModel } from "../Models/MedicalHistoryModel.js";
 
 const historyApp = exp.Router();
 
+const toHistoryEntry = (body) => ({
+  date: body.date || body.visitDate,
+  doctor: body.doctor ?? body.doctorId,
+  notes: body.notes,
+  diagnosis: body.diagnosis || body.condition,
+  treatment: body.treatment,
+});
+
 historyApp.post("/medical-history", async (req, res, next) => {
   try {
     const data = req.body;
+    const patientId = data.patient ?? data.patientId;
+    const entries = Array.isArray(data.entries) ? data.entries : [toHistoryEntry(data)];
     // ensure a medical history document exists per patient
-    let doc = await MedicalHistoryModel.findOne({ patient: data.patient });
+    let doc = await MedicalHistoryModel.findOne({ patient: patientId });
     if (!doc) {
-      doc = new MedicalHistoryModel({ patient: data.patient, entries: data.entries || [] });
+      doc = new MedicalHistoryModel({ patient: patientId, entries });
     } else {
-      doc.entries = doc.entries.concat(data.entries || []);
+      doc.entries = doc.entries.concat(entries);
     }
     await doc.save();
     return res.status(201).json({ message: "Medical history updated", payload: doc });

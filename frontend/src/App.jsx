@@ -62,7 +62,7 @@ function DoctorRegistrationPage() {
   };
 
   const handleSuccess = (response) => {
-    setActiveUser(response.payload);
+    setActiveUser({ ...response.payload, role: "DOCTOR" });
     navigate("/dashboard");
   };
 
@@ -80,7 +80,7 @@ function PatientRegistrationPage() {
   };
 
   const handleSuccess = (response) => {
-    setActiveUser(response.payload);
+    setActiveUser({ ...response.payload, role: "PATIENT" });
     navigate("/dashboard");
   };
 
@@ -98,7 +98,7 @@ function AdminRegistrationPage() {
   };
 
   const handleSuccess = (response) => {
-    setActiveUser(response.payload);
+    setActiveUser({ ...response.payload, role: "ADMIN" });
     navigate("/dashboard");
   };
 
@@ -112,7 +112,7 @@ function LoginPage() {
   const setActiveUser = useAppStore((state) => state.setActiveUser);
 
   const handleLoginSuccess = (response) => {
-    setActiveUser(response.payload);
+    setActiveUser({ ...response.payload, role: response.role || selectedRole || response.payload?.role || "PATIENT" });
     navigate("/dashboard");
   };
 
