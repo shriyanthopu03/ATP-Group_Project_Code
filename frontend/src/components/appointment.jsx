@@ -6,12 +6,7 @@ function Appointment({ saveAppointment, appointmentForm, setAppointmentForm, sta
       <form onSubmit={saveAppointment} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
         <h2 className="text-2xl font-black">Book appointment</h2>
         <div className="mt-4 grid gap-3">
-          <select value={appointmentForm.doctorId} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, doctorId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
-            <option value="">Select doctor</option>
-            {state.doctors.filter((doctor) => doctor.isDoctorActive).map((doctor) => (
-              <option key={doctor.id} value={doctor.id} className="text-slate-950">Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}</option>
-            ))}
-          </select>
+
           <input type="date" value={appointmentForm.appointmentDate} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, appointmentDate: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none" />
           <input type="time" value={appointmentForm.appointmentTime} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, appointmentTime: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none" />
           <input type="text" placeholder="Reason" value={appointmentForm.reason} onChange={(event) => setAppointmentForm((prev) => ({ ...prev, reason: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />

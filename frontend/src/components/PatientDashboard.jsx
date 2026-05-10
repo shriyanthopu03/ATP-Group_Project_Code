@@ -1,21 +1,61 @@
-import { loadHospitalState, buildPatientProfileForm } from "./HospitalDashboard";
+import React, { useState } from 'react';
+import { loadHospitalState, mutateHospitalState, buildPatientProfileForm, emptyAppointment } from "../utils/hospitalState";
 import EntityPill from "./EntityPill";
-import Appointment from "./Appointment";
+import Appointment from "./appointment";
 
-function PatientDashboard({
-  activeTab,
-  state,
-  user,
-  currentUser,
-  appointmentForm,
-  setAppointmentForm,
-  saveAppointment,
-  isEditingProfile,
-  setIsEditingProfile,
-  patientProfileForm,
-  setPatientProfileForm,
-  savePatientProfile,
-}) {
+function PatientDashboard({ activeTab, state, user, currentUser, refreshState }) {
+  const [appointmentForm, setAppointmentForm] = useState({ ...emptyAppointment, patientId: user.id });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [patientProfileForm, setPatientProfileForm] = useState(() => buildPatientProfileForm(currentUser));
+
+  const saveAppointment = (event) => {
+    event.preventDefault();
+    mutateHospitalState((draft) => {
+      draft.appointments.push({
+        id: `${Date.now()}`,
+        ...appointmentForm,
+        reminderSent: false,
+      });
+      return draft;
+    });
+    refreshState();
+    setAppointmentForm({ ...emptyAppointment, patientId: user.id });
+  };
+
+  const savePatientProfile = (event) => {
+    event.preventDefault();
+    mutateHospitalState((draft) => {
+      draft.patients = draft.patients.map((entry) =>
+        entry.id === user.id
+          ? {
+            ...entry,
+            firstName: patientProfileForm.firstName,
+            lastName: patientProfileForm.lastName,
+            password: patientProfileForm.password || entry.password,
+            age: Number(patientProfileForm.age),
+            phoneNumber: patientProfileForm.phoneNumber,
+            address: patientProfileForm.address,
+            profileImageUrl: patientProfileForm.profileImageUrl,
+          }
+          : entry,
+      );
+
+      draft.users = draft.users.map((entry) =>
+        entry.id === user.id
+          ? {
+            ...entry,
+            firstName: patientProfileForm.firstName,
+            lastName: patientProfileForm.lastName,
+            password: patientProfileForm.password || entry.password,
+          }
+          : entry,
+      );
+      return draft;
+    });
+    refreshState();
+    setIsEditingProfile(false);
+  };
+
   return (
     <>
       {activeTab === "book" && (
@@ -199,4 +239,4 @@ function PatientDashboard({
   );
 }
 
-export default PatientDashboard
+export default PatientDashboard;
