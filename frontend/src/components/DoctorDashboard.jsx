@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Trash2 } from "lucide-react";
+import React, { useState, useMemo, useEffect } from 'react';
+import { useForm } from "react-hook-form";
 import { 
   mutateHospitalState, 
   emptyPrescription, 
@@ -17,10 +17,16 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
   const [calendarMonth, setCalendarMonth] = useState(formatMonthValue(new Date()));
   const [selectedDay, setSelectedDay] = useState("");
   const [editingPrescriptionId, setEditingPrescriptionId] = useState(null);
-  const [prescriptionForm, setPrescriptionForm] = useState(emptyPrescription);
   const [editingHistoryId, setEditingHistoryId] = useState(null);
-  const [historyForm, setHistoryForm] = useState(emptyHistory);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { register: registerPrescription, handleSubmit: handleSubmitPrescription, reset: resetPrescription, setValue: setPrescriptionValue } = useForm({
+    defaultValues: emptyPrescription
+  });
+
+  const { register: registerHistory, handleSubmit: handleSubmitHistory, reset: resetHistory, setValue: setHistoryValue } = useForm({
+    defaultValues: emptyHistory
+  });
 
   const myAppointments = useMemo(() => {
     // String cast BOTH IDs to ensure absolute matching
@@ -28,7 +34,7 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
     const filtered = (state.appointments || []).filter((entry) => String(entry.doctorId) === doctorId);
     console.log("DoctorDashboard: Filtered appointments for ID", doctorId, filtered);
     return filtered;
-  }, [state.appointments, currentUser.id]);
+  }, [state.appointments, currentUser?.id]);
 
   const selectedMonthCells = useMemo(() => getMonthCells(calendarMonth, myAppointments), [calendarMonth, myAppointments]);
   
@@ -46,16 +52,15 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
     window.location.href = mailto;
   };
 
-  const savePrescription = (event) => {
-    event.preventDefault();
+  const onSavePrescription = (data) => {
     mutateHospitalState((draft) => {
-      const medicines = prescriptionForm.medicineName
+      const medicines = data.medicineName
         ? [
           {
-            name: prescriptionForm.medicineName,
-            dosage: prescriptionForm.dosage,
-            duration: prescriptionForm.duration,
-            instructions: prescriptionForm.instructions,
+            name: data.medicineName,
+            dosage: data.dosage,
+            duration: data.duration,
+            instructions: data.instructions,
           },
         ]
         : [];
@@ -63,7 +68,7 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
       if (editingPrescriptionId) {
         draft.prescriptions = draft.prescriptions.map((entry) =>
           entry.id === editingPrescriptionId
-            ? { ...entry, diagnosis: prescriptionForm.diagnosis, medicines, notes: prescriptionForm.notes }
+            ? { ...entry, diagnosis: data.diagnosis, medicines, notes: data.notes }
             : entry,
         );
         return draft;
@@ -71,32 +76,31 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
 
       draft.prescriptions.push({
         id: `${Date.now()}`,
-        appointmentId: prescriptionForm.appointmentId,
-        patientId: prescriptionForm.patientId,
+        appointmentId: data.appointmentId,
+        patientId: data.patientId,
         doctorId: currentUser.id,
-        diagnosis: prescriptionForm.diagnosis,
+        diagnosis: data.diagnosis,
         medicines,
-        notes: prescriptionForm.notes,
+        notes: data.notes,
         prescribedAt: new Date().toISOString(),
       });
       return draft;
     });
     refreshState();
     setEditingPrescriptionId(null);
-    setPrescriptionForm(emptyPrescription);
+    resetPrescription(emptyPrescription);
   };
 
-  const saveHistory = (event) => {
-    event.preventDefault();
+  const onSaveHistory = (data) => {
     mutateHospitalState((draft) => {
       if (editingHistoryId) {
-        draft.histories = draft.histories.map((entry) => (entry.id === editingHistoryId ? { ...entry, ...historyForm } : entry));
+        draft.histories = draft.histories.map((entry) => (entry.id === editingHistoryId ? { ...entry, ...data } : entry));
         return draft;
       }
 
       draft.histories.push({
         id: `${Date.now()}`,
-        ...historyForm,
+        ...data,
         doctorId: currentUser.id,
         visitDate: new Date().toISOString(),
       });
@@ -104,27 +108,27 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
     });
     refreshState();
     setEditingHistoryId(null);
-    setHistoryForm(emptyHistory);
+    resetHistory(emptyHistory);
   };
 
   return (
     <>
       {activeTab === "schedule" && (
         <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
+          <div className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-black">My schedule</h2>
-                <p className="text-sm text-slate-400">Month-based calendar with appointment counts.</p>
+                <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">My schedule</h2>
+                <p className="text-sm font-bold text-slate-500">Month-based calendar with appointment counts.</p>
               </div>
               <input
                 type="month"
                 value={calendarMonth}
                 onChange={(event) => setCalendarMonth(event.target.value)}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm outline-none"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none"
               />
             </div>
-            <div className="mt-4 grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <div className="mt-4 grid grid-cols-7 gap-2 text-center text-xs font-black uppercase tracking-widest text-slate-400">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                 <div key={day}>{day}</div>
               ))}
@@ -135,20 +139,20 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
                   <button
                     key={cell.currentDate}
                     onClick={() => setSelectedDay(cell.currentDate)}
-                    className={`min-h-[5rem] rounded-2xl border p-2 text-left transition ${selectedDay === cell.currentDate ? "border-blue-300 bg-blue-900/20" : "border-white/10 bg-white/5 hover:bg-white/10"
+                    className={`min-h-[5rem] rounded-2xl border p-2 text-left transition ${selectedDay === cell.currentDate ? "border-blue-400 bg-blue-50 shadow-inner" : "border-slate-100 bg-white hover:bg-slate-50"
                       }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-white">{cell.day}</span>
+                      <span className={`text-sm font-black ${selectedDay === cell.currentDate ? "text-blue-600" : "text-slate-800"}`}>{cell.day}</span>
                       {cell.dayAppointments.length > 0 && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-black text-white shadow-lg shadow-blue-500/30">
                           {cell.dayAppointments.length}
                         </span>
                       )}
                     </div>
                     <div className="mt-1 flex flex-col gap-1 overflow-hidden">
                       {cell.dayAppointments.slice(0, 2).map((apt) => (
-                        <div key={apt.id} className="truncate text-[9px] text-zinc-400">
+                        <div key={apt.id} className="truncate text-[9px] font-bold text-slate-500">
                           • {apt.appointmentTime}
                         </div>
                       ))}
@@ -161,28 +165,28 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
             </div>
           </div>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Today&apos;s patients and records</h2>
+          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Today&apos;s patients and records</h2>
             <div className="mt-6 space-y-4">
               {myAppointments.length > 0 ? (
                 myAppointments.map((appointment) => (
-                  <div key={appointment.id} className="rounded-2xl border border-white/5 bg-white/5 p-5 transition-hover hover:bg-white/10">
-                    <p className="font-black text-white brightness-150 text-lg">
+                  <div key={appointment.id} className="rounded-2xl border border-slate-100 bg-white p-5 hover:bg-slate-50 transition-colors shadow-sm">
+                    <p className="font-black text-slate-800 text-lg">
                       {state.patients.find((entry) => String(entry.id) === String(appointment.patientId))?.firstName || "Patient"} - {appointment.reason}
                     </p>
-                    <p className="text-base font-bold text-slate-300 mt-1">{appointment.appointmentDate} at {appointment.appointmentTime}</p>
+                    <p className="text-base font-bold text-slate-500 mt-1">{appointment.appointmentDate} at {appointment.appointmentTime}</p>
                     <div className="mt-4 flex flex-wrap gap-3">
                       <button onClick={() => setActiveTab("records")} className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg shadow-blue-500/20 hover:scale-105 transition-all">
                         ADD RECORD
                       </button>
-                      <button onClick={() => sendReminder(appointment)} className="rounded-xl border border-white/10 bg-white/5 px-5 py-2 text-xs font-black text-slate-200 hover:bg-white/10 transition-all">
+                      <button onClick={() => sendReminder(appointment)} className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-2 text-xs font-black text-slate-600 hover:bg-slate-100 transition-all">
                         REMINDER
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="rounded-2xl border border-dashed border-white/20 bg-white/5 p-6 text-base font-bold text-slate-500 text-center">
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-base font-bold text-slate-400 text-center">
                   No appointments found for your ID.
                 </div>
               )}
@@ -193,69 +197,69 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
 
       {activeTab === "records" && (
         <div className="grid gap-6 xl:grid-cols-2">
-          <form onSubmit={savePrescription} className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Prescriptions</h2>
-            <div className="mt-4 grid gap-3">
-              <select value={prescriptionForm.patientId} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, patientId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
+          <form onSubmit={handleSubmitPrescription(onSavePrescription)} className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Prescriptions</h2>
+            <div className="mt-6 grid gap-3">
+              <select {...registerPrescription("patientId")} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
                 <option value="">Select patient</option>
                 {state.patients.map((patient) => (
-                  <option key={patient.id} value={patient.id} className="text-slate-950">{patient.firstName} {patient.lastName}</option>
+                  <option key={patient.id} value={patient.id} className="text-slate-900">{patient.firstName} {patient.lastName}</option>
                 ))}
               </select>
-              <select value={prescriptionForm.appointmentId} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, appointmentId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
+              <select {...registerPrescription("appointmentId")} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
                 <option value="">Select appointment</option>
                 {state.appointments.map((appointment) => (
-                  <option key={appointment.id} value={appointment.id} className="text-slate-950">
+                  <option key={appointment.id} value={appointment.id} className="text-slate-900">
                     {state.patients.find(p => p.id === appointment.patientId)?.firstName || "Patient"} - {appointment.appointmentDate} {appointment.appointmentTime}
                   </option>
                 ))}
               </select>
-              <input value={prescriptionForm.diagnosis} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, diagnosis: event.target.value }))} placeholder="Diagnosis" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-              <input value={prescriptionForm.medicineName} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, medicineName: event.target.value }))} placeholder="Medicine name" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
+              <input {...registerPrescription("diagnosis")} placeholder="Diagnosis" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPrescription("medicineName")} placeholder="Medicine name" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input value={prescriptionForm.dosage} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, dosage: event.target.value }))} placeholder="Dosage" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-                <input value={prescriptionForm.duration} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, duration: event.target.value }))} placeholder="Duration" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
+                <input {...registerPrescription("dosage")} placeholder="Dosage" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+                <input {...registerPrescription("duration")} placeholder="Duration" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
               </div>
-              <input value={prescriptionForm.instructions} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, instructions: event.target.value }))} placeholder="Instructions" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-              <textarea value={prescriptionForm.notes} onChange={(event) => setPrescriptionForm((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Notes" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
+              <input {...registerPrescription("instructions")} placeholder="Instructions" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <textarea {...registerPrescription("notes")} placeholder="Notes" className="min-h-24 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <button type="submit" className="mt-4 rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">{editingPrescriptionId ? "Update prescription" : "Save prescription"}</button>
+            <button type="submit" className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all">{editingPrescriptionId ? "UPDATE PRESCRIPTION" : "SAVE PRESCRIPTION"}</button>
           </form>
 
-          <form onSubmit={saveHistory} className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Medical history logs</h2>
-            <div className="mt-4 grid gap-3">
-              <select value={historyForm.patientId} onChange={(event) => setHistoryForm((prev) => ({ ...prev, patientId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
+          <form onSubmit={handleSubmitHistory(onSaveHistory)} className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Medical history logs</h2>
+            <div className="mt-6 grid gap-3">
+              <select {...registerHistory("patientId")} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
                 <option value="">Select patient</option>
                 {state.patients.map((patient) => (
-                  <option key={patient.id} value={patient.id} className="text-slate-950">{patient.firstName} {patient.lastName}</option>
+                  <option key={patient.id} value={patient.id} className="text-slate-900">{patient.firstName} {patient.lastName}</option>
                 ))}
               </select>
-              <select value={historyForm.appointmentId} onChange={(event) => setHistoryForm((prev) => ({ ...prev, appointmentId: event.target.value }))} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none">
+              <select {...registerHistory("appointmentId")} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
                 <option value="">Select appointment</option>
                 {state.appointments.map((appointment) => (
-                  <option key={appointment.id} value={appointment.id} className="text-slate-950">
+                  <option key={appointment.id} value={appointment.id} className="text-slate-900">
                     {state.patients.find(p => p.id === appointment.patientId)?.firstName || "Patient"} - {appointment.appointmentDate} {appointment.appointmentTime}
                   </option>
                 ))}
               </select>
-              <input value={historyForm.condition} onChange={(event) => setHistoryForm((prev) => ({ ...prev, condition: event.target.value }))} placeholder="Condition" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-              <textarea value={historyForm.symptoms} onChange={(event) => setHistoryForm((prev) => ({ ...prev, symptoms: event.target.value }))} placeholder="Symptoms" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-              <textarea value={historyForm.treatment} onChange={(event) => setHistoryForm((prev) => ({ ...prev, treatment: event.target.value }))} placeholder="Treatment" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
-              <textarea value={historyForm.notes} onChange={(event) => setHistoryForm((prev) => ({ ...prev, notes: event.target.value }))} placeholder="Notes" className="min-h-24 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500" />
+              <input {...registerHistory("condition")} placeholder="Condition" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <textarea {...registerHistory("symptoms")} placeholder="Symptoms" className="min-h-24 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <textarea {...registerHistory("treatment")} placeholder="Treatment" className="min-h-24 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <textarea {...registerHistory("notes")} placeholder="Notes" className="min-h-24 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <button type="submit" className="mt-4 rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">{editingHistoryId ? "Update history" : "Save history"}</button>
+            <button type="submit" className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all">{editingHistoryId ? "UPDATE HISTORY" : "SAVE HISTORY"}</button>
           </form>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6 xl:col-span-2">
-            <h2 className="text-2xl font-black">Prescription and history log book</h2>
-            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+          <div className="rounded-4xl border border-white bg-white/70 p-6 xl:col-span-2 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Prescription and history log book</h2>
+            <div className="mt-6 grid gap-4 xl:grid-cols-2">
               <div className="space-y-3">
                 {state.prescriptions.filter(p => p.doctorId === currentUser.id).map((entry) => (
-                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 flex justify-between items-start">
+                  <div key={entry.id} className="rounded-2xl border border-slate-100 bg-white p-4 flex justify-between items-start shadow-sm">
                     <div>
-                      <p className="font-semibold text-white">{entry.diagnosis}</p>
-                      <p className="text-sm text-slate-300">{entry.medicines[0]?.name || "No medicines"}</p>
+                      <p className="font-black text-slate-800">{entry.diagnosis}</p>
+                      <p className="text-sm font-bold text-slate-500">{entry.medicines[0]?.name || "No medicines"}</p>
                     </div>
                     <button 
                       onClick={() => {
@@ -265,20 +269,20 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
                         });
                         refreshState();
                       }}
-                      className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                      className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-100 transition"
                       title="Delete prescription"
                     >
-                      <Trash2 size={14} />
+                      DELETE
                     </button>
                   </div>
                 ))}
               </div>
               <div className="space-y-3">
                 {state.histories.filter(h => h.doctorId === currentUser.id).map((entry) => (
-                  <div key={entry.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 flex justify-between items-start">
+                  <div key={entry.id} className="rounded-2xl border border-slate-100 bg-white p-4 flex justify-between items-start shadow-sm">
                     <div>
-                      <p className="font-semibold text-white">{entry.condition}</p>
-                      <p className="text-sm text-slate-300">{entry.treatment}</p>
+                      <p className="font-black text-slate-800">{entry.condition}</p>
+                      <p className="text-sm font-bold text-slate-500">{entry.treatment}</p>
                     </div>
                     <button 
                       onClick={() => {
@@ -288,10 +292,10 @@ function DoctorDashboard({ activeTab, state, setActiveTab, currentUser, refreshS
                         });
                         refreshState();
                       }}
-                      className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                      className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-100 transition"
                       title="Delete log"
                     >
-                      <Trash2 size={14} />
+                      DELETE
                     </button>
                   </div>
                 ))}

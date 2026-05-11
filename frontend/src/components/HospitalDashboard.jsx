@@ -66,14 +66,7 @@ function HospitalDashboard({ user, onLogout }) {
         <header className="mb-10 overflow-hidden rounded-[3rem] border border-white bg-white/70 p-8 shadow-xl backdrop-blur-3xl">
           <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 border border-blue-500/20">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </span>
-                Live Portal
-              </div>
-                <h1 className="mt-6 text-4xl font-black tracking-tight text-slate-900 sm:text-6xl">
+                <h1 className="mt-2 text-4xl font-black tracking-tight text-slate-900 sm:text-6xl">
                   {userRole === "DOCTOR" && (
                     <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">
                       Dr.{" "}
@@ -92,7 +85,6 @@ function HospitalDashboard({ user, onLogout }) {
               onClick={onLogout}
               className="flex items-center gap-3 rounded-2xl bg-white border border-slate-200 px-8 py-4 text-sm font-black text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
             >
-              <LogOut size={20} className="text-blue-600" />
               Logout
             </button>
           </div>
@@ -100,10 +92,7 @@ function HospitalDashboard({ user, onLogout }) {
           <div className="mt-12">
             <div className="rounded-[2.5rem] border border-white bg-white/60 p-8 shadow-lg shadow-blue-500/5">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 ring-1 ring-blue-200">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                  </div>
+                <h2 className="text-2xl font-black text-slate-800">
                   <span className="bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent">Upcoming appointments</span>
                 </h2>
                 {userRole === "PATIENT" && (
