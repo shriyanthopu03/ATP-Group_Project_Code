@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Trash2 } from "lucide-react";
 import { mutateHospitalState, emptyPatient, emptyDoctor, emptyAppointment, formatDate } from "../utils/hospitalState";
 import EntityPill from "./EntityPill";
 import SearchPanel from "./SearchPanel";
@@ -151,18 +152,21 @@ function AdminDashboard({
     <>
       {activeTab === "overview" && (
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-black">System overview</h2>
-                <p className="text-sm text-slate-400">Latest activity across patients, doctors, and scheduling.</p>
+                <h2 className="text-3xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">System overview</h2>
+                <p className="text-base font-bold text-slate-300 mt-1">Latest activity across patients, doctors, and scheduling.</p>
               </div>
-              <button onClick={() => setActiveTab("appointments")} className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
-                Schedule
+              <button 
+                onClick={() => setActiveTab("appointments")} 
+                className="rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-500/30 hover:scale-105 transition-all"
+              >
+                SCHEDULE
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <EntityPill label="Active patients" value={state.patients.filter((entry) => entry.isPatientActive).length} />
               <EntityPill label="Active doctors" value={state.doctors.filter((entry) => entry.isDoctorActive).length} />
               <EntityPill label="Prescriptions" value={state.prescriptions.length} />
@@ -170,16 +174,16 @@ function AdminDashboard({
             </div>
           </div>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">Upcoming appointments</h2>
-            <div className="mt-4 space-y-3">
+          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Recent appointments</h2>
+            <div className="mt-6 space-y-4">
               {state.appointments.slice(0, 5).map((appointment) => (
-                <div key={appointment.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="font-semibold text-white">
-                    {state.patients.find((entry) => entry.id === appointment.patientId)?.firstName || "Patient"} with{" "}
-                    {state.doctors.find((entry) => entry.id === appointment.doctorId)?.firstName || "Doctor"}
+                <div key={appointment.id} className="rounded-2xl border border-white/5 bg-white/5 p-5 hover:bg-white/10 transition-colors">
+                  <p className="font-black text-white brightness-150 text-lg">
+                    {state.patients.find((entry) => String(entry.id) === String(appointment.patientId))?.firstName || "Patient"} with{" "}
+                    {state.doctors.find((entry) => String(entry.id) === String(appointment.doctorId))?.firstName || "Doctor"}
                   </p>
-                  <p className="text-sm text-slate-300">
+                  <p className="text-base font-bold text-slate-300 mt-1">
                     {appointment.appointmentDate} at {appointment.appointmentTime} - {appointment.reason}
                   </p>
                 </div>
@@ -251,9 +255,10 @@ function AdminDashboard({
                           });
                           refreshState();
                         }}
-                        className="rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white"
+                        className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        title="Delete patient"
                       >
-                        Delete
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -330,9 +335,10 @@ function AdminDashboard({
                           });
                           refreshState();
                         }}
-                        className="rounded-full bg-rose-500 px-3 py-1 text-xs font-semibold text-white"
+                        className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        title="Delete doctor"
                       >
-                        Delete
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
@@ -439,7 +445,7 @@ function AdminDashboard({
                   <button
                     key={cell.currentDate}
                     onClick={() => setSelectedDay(cell.currentDate)}
-                    className={`min-h-24 rounded-2xl border p-2 text-left transition ${selectedDay === cell.currentDate ? "border-blue-300 bg-blue-900/20" : "border-white/10 bg-white/5 hover:bg-white/10"
+                    className={`min-h-[5rem] rounded-2xl border p-2 text-left transition ${selectedDay === cell.currentDate ? "border-blue-300 bg-blue-900/20" : "border-white/10 bg-white/5 hover:bg-white/10"
                       }`}
                   >
                     <div className="flex items-center justify-between">
@@ -447,15 +453,15 @@ function AdminDashboard({
                       <span className="text-[11px] text-slate-400">{cell.dayAppointments.length}</span>
                     </div>
                     <div className="mt-2 space-y-1 text-[11px] text-slate-300">
-                      {cell.dayAppointments.slice(0, 2).map((appointment) => (
-                        <div key={appointment.id} className="rounded-full bg-white/10 px-2 py-1">
+                      {cell.dayAppointments.slice(0, 1).map((appointment) => (
+                        <div key={appointment.id} className="rounded-full bg-white/10 px-2 py-1 truncate">
                           {appointment.appointmentTime} {appointment.reason}
                         </div>
                       ))}
                     </div>
                   </button>
                 ) : (
-                  <div key={`empty-${index}`} className="min-h-24 rounded-2xl border border-transparent" />
+                  <div key={`empty-${index}`} className="min-h-[5rem] rounded-2xl border border-transparent" />
                 ),
               )}
             </div>
@@ -482,6 +488,19 @@ function AdminDashboard({
                         className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-200"
                       >
                         Complete
+                      </button>
+                      <button
+                        onClick={() => {
+                          mutateHospitalState((draft) => {
+                            draft.appointments = draft.appointments.filter((a) => a.id !== appointment.id);
+                            return draft;
+                          });
+                          refreshState();
+                        }}
+                        className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        title="Delete appointment"
+                      >
+                        <Trash2 size={14} />
                       </button>
                       <button
                         onClick={() => {

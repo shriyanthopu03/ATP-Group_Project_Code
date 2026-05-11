@@ -40,7 +40,7 @@ function Login({ onBack, onSuccess, defaultRole = "PATIENT" }) {
 
   return (
     <div className="mx-auto w-full max-w-md border border-gray-200 bg-white p-6 shadow-lg" style={{ borderRadius: "1.5rem" }}>
-      <h1 className="text-5xl font-black text-gray-800 mb-2">Login</h1>
+      <h1 className="text-5xl font-black text-gray-800 mb-2 text-center">Login</h1>
       <p className="text-center text-gray-600 mb-4">Sign in with your account</p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
