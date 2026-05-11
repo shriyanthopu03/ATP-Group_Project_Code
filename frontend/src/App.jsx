@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import { createBrowserRouter, Navigate, Outlet, RouterProvider, useNavigate } from "react-router";
 import { create } from "zustand";
+import { io } from "socket.io-client";
 import RoleSelection from "./components/RoleSelection";
 import DoctorRegistration from "./components/DoctorRegistration";
 import PatientRegistration from "./components/PatientRegistration";
@@ -10,6 +11,7 @@ import Login from "./components/Login";
 import HospitalDashboard from "./components/HospitalDashboard";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
 const useAppStore = create((set) => ({
   selectedRole: "PATIENT",
@@ -21,9 +23,23 @@ const useAppStore = create((set) => ({
 
 function AppLayout() {
   useEffect(() => {
+    const socket = io(SOCKET_URL);
+
+    socket.on("connect", () => {
+      console.log("Connected to socket server:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected from socket server");
+    });
+
     axios.get(`${API_BASE_URL}/status`, { withCredentials: true }).catch(() => {
       // The app can still run in local mock mode if backend is unavailable.
     });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (

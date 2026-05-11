@@ -3,7 +3,6 @@ import AdminDashboard from "./AdminDashboard";
 import DoctorDashboard from "./DoctorDashboard";
 import PatientDashboard from "./PatientDashboard";
 import { loadHospitalState } from "../utils/hospitalState";
-import { LogOut } from "lucide-react";
 
 function HospitalDashboard({ user, onLogout }) {
   const userRole = String(user?.role || "PATIENT").toUpperCase();

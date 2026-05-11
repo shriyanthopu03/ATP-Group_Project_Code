@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { mutateHospitalState, emptyPatient, emptyDoctor, emptyAppointment, formatDate } from "../utils/hospitalState";
 import EntityPill from "./EntityPill";
 import SearchPanel from "./SearchPanel";
@@ -19,37 +19,45 @@ function AdminDashboard({
   updateAppointmentStatus
 }) {
   const [editingPatientId, setEditingPatientId] = useState(null);
-  const [patientForm, setPatientForm] = useState(emptyPatient);
   const [editingDoctorId, setEditingDoctorId] = useState(null);
-  const [doctorForm, setDoctorForm] = useState(emptyDoctor);
   const [editingAppointmentId, setEditingAppointmentId] = useState(null);
-  const [appointmentForm, setAppointmentForm] = useState(emptyAppointment);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { register: registerPatient, handleSubmit: handleSubmitPatient, reset: resetPatient, setValue: setPatientValue } = useForm({
+    defaultValues: emptyPatient
+  });
+
+  const { register: registerDoctor, handleSubmit: handleSubmitDoctor, reset: resetDoctor, setValue: setDoctorValue } = useForm({
+    defaultValues: emptyDoctor
+  });
+
+  const { register: registerAppointment, handleSubmit: handleSubmitAppointment, reset: resetAppointment, setValue: setAppointmentValue } = useForm({
+    defaultValues: emptyAppointment
+  });
 
   const resetPatientForm = () => {
     setEditingPatientId(null);
-    setPatientForm(emptyPatient);
+    resetPatient(emptyPatient);
   };
 
   const resetDoctorForm = () => {
     setEditingDoctorId(null);
-    setDoctorForm(emptyDoctor);
+    resetDoctor(emptyDoctor);
   };
 
   const resetAppointmentForm = () => {
     setEditingAppointmentId(null);
-    setAppointmentForm(emptyAppointment);
+    resetAppointment(emptyAppointment);
   };
 
-  const savePatient = (event) => {
-    event.preventDefault();
+  const onSavePatient = (data) => {
     mutateHospitalState((draft) => {
       if (editingPatientId) {
         draft.patients = draft.patients.map((entry) =>
-          entry.id === editingPatientId ? { ...entry, ...patientForm, age: Number(patientForm.age), isPatientActive: entry.isPatientActive } : entry,
+          entry.id === editingPatientId ? { ...entry, ...data, age: Number(data.age), isPatientActive: entry.isPatientActive } : entry,
         );
         draft.users = draft.users.map((entry) =>
-          entry.id === editingPatientId ? { ...entry, ...patientForm, password: patientForm.password || entry.password, role: "PATIENT" } : entry,
+          entry.id === editingPatientId ? { ...entry, ...data, password: data.password || entry.password, role: "PATIENT" } : entry,
         );
         return draft;
       }
@@ -57,17 +65,17 @@ function AdminDashboard({
       const nextId = `${Date.now()}`;
       draft.patients.push({
         id: nextId,
-        ...patientForm,
-        age: Number(patientForm.age),
+        ...data,
+        age: Number(data.age),
         isPatientActive: true,
       });
       draft.users.push({
         id: nextId,
         role: "PATIENT",
-        email: patientForm.email,
-        password: patientForm.password,
-        firstName: patientForm.firstName,
-        lastName: patientForm.lastName,
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
       });
       return draft;
     });
@@ -75,15 +83,14 @@ function AdminDashboard({
     resetPatientForm();
   };
 
-  const saveDoctor = (event) => {
-    event.preventDefault();
+  const onSaveDoctor = (data) => {
     mutateHospitalState((draft) => {
       if (editingDoctorId) {
         draft.doctors = draft.doctors.map((entry) =>
-          entry.id === editingDoctorId ? { ...entry, ...doctorForm, age: Number(doctorForm.age), experience: Number(doctorForm.experience) } : entry,
+          entry.id === editingDoctorId ? { ...entry, ...data, age: Number(data.age), experience: Number(data.experience) } : entry,
         );
         draft.users = draft.users.map((entry) =>
-          entry.id === editingDoctorId ? { ...entry, ...doctorForm, password: doctorForm.password || entry.password, role: "DOCTOR" } : entry,
+          entry.id === editingDoctorId ? { ...entry, ...data, password: data.password || entry.password, role: "DOCTOR" } : entry,
         );
         return draft;
       }
@@ -91,18 +98,18 @@ function AdminDashboard({
       const nextId = `${Date.now()}`;
       draft.doctors.push({
         id: nextId,
-        ...doctorForm,
-        age: Number(doctorForm.age),
-        experience: Number(doctorForm.experience),
+        ...data,
+        age: Number(data.age),
+        experience: Number(data.experience),
         isDoctorActive: true,
       });
       draft.users.push({
         id: nextId,
         role: "DOCTOR",
-        email: doctorForm.email,
-        password: doctorForm.password,
-        firstName: doctorForm.firstName,
-        lastName: doctorForm.lastName,
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
       });
       return draft;
     });
@@ -110,16 +117,15 @@ function AdminDashboard({
     resetDoctorForm();
   };
 
-  const saveAppointment = (event) => {
-    event.preventDefault();
+  const onSaveAppointment = (data) => {
     mutateHospitalState((draft) => {
       if (editingAppointmentId) {
-        draft.appointments = draft.appointments.map((entry) => (entry.id === editingAppointmentId ? { ...entry, ...appointmentForm } : entry));
+        draft.appointments = draft.appointments.map((entry) => (entry.id === editingAppointmentId ? { ...entry, ...data } : entry));
         return draft;
       }
       draft.appointments.push({
         id: `${Date.now()}`,
-        ...appointmentForm,
+        ...data,
         reminderSent: false,
       });
       return draft;
@@ -152,11 +158,11 @@ function AdminDashboard({
     <>
       {activeTab === "overview" && (
         <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
+          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h2 className="text-3xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">System overview</h2>
-                <p className="text-base font-bold text-slate-300 mt-1">Latest activity across patients, doctors, and scheduling.</p>
+                <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">System overview</h2>
+                <p className="text-base font-bold text-slate-500 mt-1">Latest activity across patients, doctors, and scheduling.</p>
               </div>
               <button 
                 onClick={() => setActiveTab("appointments")} 
@@ -174,16 +180,16 @@ function AdminDashboard({
             </div>
           </div>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Recent appointments</h2>
+          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Recent appointments</h2>
             <div className="mt-6 space-y-4">
               {state.appointments.slice(0, 5).map((appointment) => (
-                <div key={appointment.id} className="rounded-2xl border border-white/5 bg-white/5 p-5 hover:bg-white/10 transition-colors">
-                  <p className="font-black text-white brightness-150 text-lg">
+                <div key={appointment.id} className="rounded-2xl border border-slate-100 bg-white p-5 hover:bg-slate-50 transition-colors shadow-sm">
+                  <p className="font-black text-slate-800 text-lg">
                     {state.patients.find((entry) => String(entry.id) === String(appointment.patientId))?.firstName || "Patient"} with{" "}
                     {state.doctors.find((entry) => String(entry.id) === String(appointment.doctorId))?.firstName || "Doctor"}
                   </p>
-                  <p className="text-base font-bold text-slate-300 mt-1">
+                  <p className="text-base font-bold text-slate-500 mt-1">
                     {appointment.appointmentDate} at {appointment.appointmentTime} - {appointment.reason}
                   </p>
                 </div>
@@ -195,53 +201,51 @@ function AdminDashboard({
 
       {activeTab === "patients" && (
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <form onSubmit={savePatient} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">{editingPatientId ? "Edit patient" : "Add patient"}</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {Object.entries(patientForm).map(([key, value]) => (
-                <input
-                  key={key}
-                  type={key === "age" ? "number" : key.includes("password") ? "password" : key === "profileImageUrl" ? "url" : "text"}
-                  placeholder={key.replace(/([A-Z])/g, " $1")}
-                  value={value}
-                  onChange={(event) => setPatientForm((prev) => ({ ...prev, [key]: event.target.value }))}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-300"
-                />
-              ))}
+          <form onSubmit={handleSubmitPatient(onSavePatient)} className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">{editingPatientId ? "Edit patient" : "Add patient"}</h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <input {...registerPatient("firstName")} placeholder="First Name" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPatient("lastName")} placeholder="Last Name" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPatient("email")} type="email" placeholder="Email" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPatient("password")} type="password" placeholder="Password" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPatient("phoneNumber")} placeholder="Phone Number" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPatient("age")} type="number" placeholder="Age" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerPatient("address")} placeholder="Address" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 sm:col-span-2" />
             </div>
-            <div className="mt-4 flex gap-3">
-              <button className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" type="submit">
-                {editingPatientId ? "Update patient" : "Create patient"}
+            <div className="mt-6 flex gap-3">
+              <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all font-semibold text-white hover:bg-blue-800" type="submit">
+                {editingPatientId ? "UPDATE PATIENT" : "CREATE PATIENT"}
               </button>
               {editingPatientId && (
-                <button type="button" onClick={resetPatientForm} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200">
-                  Cancel
+                <button type="button" onClick={resetPatientForm} className="rounded-xl border border-slate-200 bg-slate-50 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-100 transition-all">
+                  CANCEL
                 </button>
               )}
             </div>
           </form>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">Patients</h2>
-            <div className="mt-4 space-y-3">
+          <div className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Patients</h2>
+            <div className="mt-6 space-y-3">
               {state.patients.map((patient) => (
-                <div key={patient.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div key={patient.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-white">
+                      <p className="font-black text-slate-800">
                         {patient.firstName} {patient.lastName}
                       </p>
-                      <p className="text-sm text-slate-300">{patient.email}</p>
+                      <p className="text-sm font-bold text-slate-500">{patient.email}</p>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
                           setEditingPatientId(patient.id);
-                          setPatientForm({ ...patient, password: patient.password || "" });
+                          Object.entries(patient).forEach(([k, v]) => setPatientValue(k, v));
+                          setPatientValue("password", "");
                         }}
-                        className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-200"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-50 transition"
                       >
-                        Edit
+                        EDIT
                       </button>
                       <button
                         onClick={() => {
@@ -255,10 +259,10 @@ function AdminDashboard({
                           });
                           refreshState();
                         }}
-                        className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-100 transition"
                         title="Delete patient"
                       >
-                        <Trash2 size={14} />
+                        DELETE
                       </button>
                     </div>
                   </div>
@@ -275,53 +279,51 @@ function AdminDashboard({
 
       {activeTab === "doctors" && (
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <form onSubmit={saveDoctor} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">{editingDoctorId ? "Edit doctor" : "Add doctor"}</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {Object.entries(doctorForm).map(([key, value]) => (
-                <input
-                  key={key}
-                  type={key === "age" || key === "experience" ? "number" : key.includes("password") ? "password" : key === "profileImageUrl" ? "url" : "text"}
-                  placeholder={key.replace(/([A-Z])/g, " $1")}
-                  value={value}
-                  onChange={(event) => setDoctorForm((prev) => ({ ...prev, [key]: event.target.value }))}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-300"
-                />
-              ))}
+          <form onSubmit={handleSubmitDoctor(onSaveDoctor)} className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">{editingDoctorId ? "Edit doctor" : "Add doctor"}</h2>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <input {...registerDoctor("firstName")} placeholder="First Name" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerDoctor("lastName")} placeholder="Last Name" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerDoctor("email")} type="email" placeholder="Email" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerDoctor("password")} type="password" placeholder="Password" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerDoctor("specialization")} placeholder="Specialization" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerDoctor("degree")} placeholder="Degree" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+              <input {...registerDoctor("experience")} type="number" placeholder="Experience" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
             </div>
-            <div className="mt-4 flex gap-3">
-              <button className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" type="submit">
-                {editingDoctorId ? "Update doctor" : "Create doctor"}
+            <div className="mt-6 flex gap-3">
+              <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all font-semibold text-white hover:bg-blue-800" type="submit">
+                {editingDoctorId ? "UPDATE DOCTOR" : "CREATE DOCTOR"}
               </button>
               {editingDoctorId && (
-                <button type="button" onClick={resetDoctorForm} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200">
-                  Cancel
+                <button type="button" onClick={resetDoctorForm} className="rounded-xl border border-slate-200 bg-slate-50 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-100 transition-all">
+                  CANCEL
                 </button>
               )}
             </div>
           </form>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">Specialization management</h2>
-            <div className="mt-4 space-y-3">
+          <div className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Specialization management</h2>
+            <div className="mt-6 space-y-3">
               {state.doctors.map((doctor) => (
-                <div key={doctor.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div key={doctor.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-white">
+                      <p className="font-black text-slate-800">
                         Dr. {doctor.firstName} {doctor.lastName}
                       </p>
-                      <p className="text-sm text-slate-300">{doctor.specialization}</p>
+                      <p className="text-sm font-bold text-slate-500">{doctor.specialization}</p>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
                           setEditingDoctorId(doctor.id);
-                          setDoctorForm({ ...doctor, password: doctor.password || "" });
+                          Object.entries(doctor).forEach(([k, v]) => setDoctorValue(k, v));
+                          setDoctorValue("password", "");
                         }}
-                        className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-200"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-600 hover:bg-slate-50 transition"
                       >
-                        Edit
+                        EDIT
                       </button>
                       <button
                         onClick={() => {
@@ -335,10 +337,10 @@ function AdminDashboard({
                           });
                           refreshState();
                         }}
-                        className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-100 transition"
                         title="Delete doctor"
                       >
-                        <Trash2 size={14} />
+                        DELETE
                       </button>
                     </div>
                   </div>
@@ -355,86 +357,80 @@ function AdminDashboard({
 
       {activeTab === "appointments" && (
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <form onSubmit={saveAppointment} className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
-            <h2 className="text-2xl font-black">{editingAppointmentId ? "Edit appointment" : "Schedule appointment"}</h2>
-            <div className="mt-4 grid gap-3">
+          <form onSubmit={handleSubmitAppointment(onSaveAppointment)} className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">{editingAppointmentId ? "Edit appointment" : "Schedule appointment"}</h2>
+            <div className="mt-6 grid gap-3">
               <select
-                value={appointmentForm.patientId}
-                onChange={(event) => setAppointmentForm((prev) => ({ ...prev, patientId: event.target.value }))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none"
+                {...registerAppointment("patientId")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none"
               >
                 <option value="">Select patient</option>
                 {state.patients.map((patient) => (
-                  <option key={patient.id} value={patient.id} className="text-slate-950">
+                  <option key={patient.id} value={patient.id} className="text-slate-900">
                     {patient.firstName} {patient.lastName}
                   </option>
                 ))}
               </select>
               <select
-                value={appointmentForm.doctorId}
-                onChange={(event) => setAppointmentForm((prev) => ({ ...prev, doctorId: event.target.value }))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 outline-none"
+                {...registerAppointment("doctorId")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none"
               >
                 <option value="">Select doctor</option>
                 {state.doctors.map((doctor) => (
-                  <option key={doctor.id} value={doctor.id} className="text-slate-950">
+                  <option key={doctor.id} value={doctor.id} className="text-slate-900">
                     Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialization}
                   </option>
                 ))}
               </select>
               <input
                 type="date"
-                value={appointmentForm.appointmentDate}
-                onChange={(event) => setAppointmentForm((prev) => ({ ...prev, appointmentDate: event.target.value }))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none"
+                {...registerAppointment("appointmentDate")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none"
               />
               <input
                 type="time"
-                value={appointmentForm.appointmentTime}
-                onChange={(event) => setAppointmentForm((prev) => ({ ...prev, appointmentTime: event.target.value }))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none"
+                {...registerAppointment("appointmentTime")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none"
               />
               <input
                 type="text"
                 placeholder="Reason"
-                value={appointmentForm.reason}
-                onChange={(event) => setAppointmentForm((prev) => ({ ...prev, reason: event.target.value }))}
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                {...registerAppointment("reason")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
               />
               <textarea
                 placeholder="Notes"
-                value={appointmentForm.notes}
-                onChange={(event) => setAppointmentForm((prev) => ({ ...prev, notes: event.target.value }))}
-                className="min-h-28 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm outline-none placeholder:text-slate-500"
+                {...registerAppointment("notes")}
+                className="min-h-28 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400"
               />
             </div>
-            <div className="mt-4 flex gap-3">
-              <button className="rounded-full bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" type="submit">
-                {editingAppointmentId ? "Update appointment" : "Create appointment"}
+            <div className="mt-6 flex gap-3">
+              <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all font-semibold text-white hover:bg-blue-800" type="submit">
+                {editingAppointmentId ? "UPDATE APPOINTMENT" : "CREATE APPOINTMENT"}
               </button>
               {editingAppointmentId && (
-                <button type="button" onClick={resetAppointmentForm} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-slate-200">
-                  Cancel
+                <button type="button" onClick={resetAppointmentForm} className="rounded-xl border border-slate-200 bg-slate-50 px-6 py-3 text-sm font-black text-slate-600 hover:bg-slate-100 transition-all">
+                  CANCEL
                 </button>
               )}
             </div>
           </form>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-6">
+          <div className="rounded-4xl border border-white bg-white/70 p-6 shadow-xl backdrop-blur-xl">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-black">Appointment calendar</h2>
-                <p className="text-sm text-slate-400">Click a day to filter the schedule.</p>
+                <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Appointment calendar</h2>
+                <p className="text-sm font-bold text-slate-500">Click a day to filter the schedule.</p>
               </div>
               <input
                 type="month"
                 value={calendarMonth}
                 onChange={(event) => setCalendarMonth(event.target.value)}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm outline-none"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none"
               />
             </div>
 
-            <div className="mt-4 grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <div className="mt-4 grid grid-cols-7 gap-2 text-center text-xs font-black uppercase tracking-widest text-slate-400">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                 <div key={day}>{day}</div>
               ))}
@@ -445,16 +441,16 @@ function AdminDashboard({
                   <button
                     key={cell.currentDate}
                     onClick={() => setSelectedDay(cell.currentDate)}
-                    className={`min-h-[5rem] rounded-2xl border p-2 text-left transition ${selectedDay === cell.currentDate ? "border-blue-300 bg-blue-900/20" : "border-white/10 bg-white/5 hover:bg-white/10"
+                    className={`min-h-[5rem] rounded-2xl border p-2 text-left transition ${selectedDay === cell.currentDate ? "border-blue-400 bg-blue-50 shadow-inner" : "border-slate-100 bg-white hover:bg-slate-50"
                       }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-white">{cell.day}</span>
-                      <span className="text-[11px] text-slate-400">{cell.dayAppointments.length}</span>
+                      <span className={`text-sm font-black ${selectedDay === cell.currentDate ? "text-blue-600" : "text-slate-800"}`}>{cell.day}</span>
+                      <span className="text-[11px] font-bold text-slate-400">{cell.dayAppointments.length}</span>
                     </div>
-                    <div className="mt-2 space-y-1 text-[11px] text-slate-300">
+                    <div className="mt-2 space-y-1 text-[11px] font-bold text-slate-500">
                       {cell.dayAppointments.slice(0, 1).map((appointment) => (
-                        <div key={appointment.id} className="rounded-full bg-white/10 px-2 py-1 truncate">
+                        <div key={appointment.id} className="rounded-lg bg-slate-50 px-2 py-1 truncate border border-slate-100">
                           {appointment.appointmentTime} {appointment.reason}
                         </div>
                       ))}
@@ -468,26 +464,26 @@ function AdminDashboard({
 
             <div className="mt-6 space-y-3">
               {calendarAppointments.map((appointment) => (
-                <div key={appointment.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                <div key={appointment.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-white">
+                      <p className="font-black text-slate-800">
                         {state.patients.find((entry) => entry.id === appointment.patientId)?.firstName || "Patient"} with{" "}
                         {state.doctors.find((entry) => entry.id === appointment.doctorId)?.firstName || "Doctor"}
                       </p>
-                      <p className="text-sm text-slate-300">
+                      <p className="text-sm font-bold text-slate-500">
                         {formatDate(appointment.appointmentDate)} at {appointment.appointmentTime} - {appointment.reason}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <button onClick={() => sendReminder(appointment)} className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
-                        Email reminder
+                      <button onClick={() => sendReminder(appointment)} className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/20">
+                        REMINDER
                       </button>
                       <button
                         onClick={() => updateAppointmentStatus(appointment.id, "completed")}
-                        className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-slate-200"
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-600 hover:bg-slate-50 transition"
                       >
-                        Complete
+                        COMPLETE
                       </button>
                       <button
                         onClick={() => {
@@ -497,7 +493,7 @@ function AdminDashboard({
                           });
                           refreshState();
                         }}
-                        className="rounded-full bg-rose-500/10 p-2 text-rose-500 hover:bg-rose-500 hover:text-white transition"
+                        className="rounded-xl bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-600 hover:bg-rose-100 transition"
                         title="Delete appointment"
                       >
                         <Trash2 size={14} />
