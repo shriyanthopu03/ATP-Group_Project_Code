@@ -85,25 +85,25 @@ function PatientDashboard({ activeTab, state, user, currentUser, refreshState })
 
       {activeTab === "records" && (
         <div className="grid gap-6 xl:grid-cols-2">
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Medical history</h2>
+          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent">Medical history</h2>
             <div className="mt-6 space-y-4">
               {state.histories.filter((entry) => entry.patientId === user.id).map((entry) => (
-                <div key={entry.id} className="rounded-2xl border border-white/5 bg-white/5 p-5 transition-hover hover:bg-white/10">
-                  <p className="font-black text-white brightness-150 text-lg">{entry.condition}</p>
-                  <p className="text-base font-bold text-slate-300 mt-1">{entry.treatment}</p>
+                <div key={entry.id} className="rounded-2xl border border-slate-100 bg-white p-5 hover:bg-slate-50 transition-colors shadow-sm">
+                  <p className="font-black text-slate-800 text-lg">{entry.condition}</p>
+                  <p className="text-base font-bold text-slate-500 mt-1">{entry.treatment}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Prescriptions</h2>
+          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent">Prescriptions</h2>
             <div className="mt-6 space-y-4">
               {state.prescriptions.filter((entry) => entry.patientId === user.id).map((entry) => (
-                <div key={entry.id} className="rounded-2xl border border-white/5 bg-white/5 p-5 transition-hover hover:bg-white/10">
-                  <p className="font-black text-white brightness-150 text-lg">{entry.diagnosis}</p>
-                  <p className="text-base font-bold text-slate-300 mt-1">{entry.medicines[0]?.name || "No medicine listed"}</p>
+                <div key={entry.id} className="rounded-2xl border border-slate-100 bg-white p-5 hover:bg-slate-50 transition-colors shadow-sm">
+                  <p className="font-black text-slate-800 text-lg">{entry.diagnosis}</p>
+                  <p className="text-base font-bold text-slate-500 mt-1">{entry.medicines[0]?.name || "No medicine listed"}</p>
                 </div>
               ))}
             </div>
@@ -112,34 +112,34 @@ function PatientDashboard({ activeTab, state, user, currentUser, refreshState })
       )}
 
       {activeTab === "profile" && (
-        <div className="rounded-4xl border border-white/10 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-3xl font-black bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">Patient profile</h2>
-              <p className="text-base font-bold text-slate-300 mt-1">Edit your patient details here. Email stays read-only.</p>
+              <h2 className="text-3xl font-black bg-gradient-to-r from-slate-800 to-slate-900 bg-clip-text text-transparent">Patient profile</h2>
+              <p className="text-base font-bold text-slate-500 mt-1">Edit your patient details here. Email stays read-only.</p>
             </div>
-            <div className="rounded-full bg-blue-600/30 border border-blue-500/50 px-6 py-2 text-sm font-black text-blue-100 shadow-[0_0_15px_rgba(37,99,235,0.2)]">
+            <div className="rounded-full bg-blue-100 border border-blue-200 px-6 py-2 text-sm font-black text-blue-600">
               {currentUser.isPatientActive ? "ACTIVE" : "INACTIVE"}
             </div>
           </div>
 
           { !isEditingProfile ? (
             <div className="mt-8 grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+              <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
                 <div className="flex items-center gap-6">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-900 text-3xl font-black text-white shadow-lg ring-4 ring-white/10">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-3xl font-black text-white shadow-lg ring-4 ring-white">
                     {(currentUser.firstName?.[0] || "P") + (currentUser.lastName?.[0] || "")}
                   </div>
                   <div>
-                    <p className="text-2xl font-black text-white brightness-150">{currentUser.firstName} {currentUser.lastName}</p>
+                    <p className="text-2xl font-black text-slate-900">{currentUser.firstName} {currentUser.lastName}</p>
                     <p className="text-base font-bold text-slate-400">Patient ID: {currentUser.id}</p>
                   </div>
                 </div>
 
                 {currentUser.profileImageUrl ? (
-                  <img src={currentUser.profileImageUrl} alt={`${currentUser.firstName} ${currentUser.lastName}`} className="mt-6 h-64 w-full rounded-3xl object-cover shadow-2xl ring-1 ring-white/20" />
+                  <img src={currentUser.profileImageUrl} alt={`${currentUser.firstName} ${currentUser.lastName}`} className="mt-6 h-64 w-full rounded-3xl object-cover shadow-md ring-1 ring-slate-100" />
                 ) : (
-                  <div className="mt-6 flex h-64 items-center justify-center rounded-3xl border border-dashed border-white/20 bg-white/5 text-base font-bold text-slate-500">
+                  <div className="mt-6 flex h-64 items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 text-base font-bold text-slate-400">
                     No profile image provided.
                   </div>
                 )}
@@ -153,7 +153,7 @@ function PatientDashboard({ activeTab, state, user, currentUser, refreshState })
                 <EntityPill label="Age" value={currentUser.age || "-"} />
                 <EntityPill label="Address" value={currentUser.address || "-"} />
                 <div className="sm:col-span-2 flex justify-end mt-4">
-                  <button onClick={() => setIsEditingProfile(true)} className="rounded-2xl bg-blue-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-105 hover:bg-blue-500 active:scale-95">Update profile</button>
+                  <button onClick={() => setIsEditingProfile(true)} className="rounded-2xl bg-blue-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 transition-all hover:scale-105 hover:bg-blue-500 active:scale-95">Update profile</button>
                 </div>
               </div>
             </div>
