@@ -30,9 +30,6 @@ function RoleSelection({ onSelectRole, onLogin }) {
 
       <div className="relative grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-center">
         <section>
-          <div className="inline-block rounded-full bg-blue-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.4em] text-blue-600 border border-blue-200">
-            Next-Gen Portal
-          </div>
           <h1 className="mt-6 text-5xl font-black tracking-tight text-slate-900 sm:text-6xl xl:text-7xl leading-tight">
             Hospital <span className="bg-linear-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Management</span>
           </h1>

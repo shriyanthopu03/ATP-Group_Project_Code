@@ -34,8 +34,8 @@ function DoctorRegistration({ onBack, onSuccess }) {
     e.preventDefault();
     setError("");
 
-    if (!formData.firstName || !formData.email || !formData.password || !formData.phoneNumber) {
-      setError("Please fill in all required fields: Name, Email, Password, and Phone Number");
+    if (!formData.firstName || !formData.email || !formData.password || !formData.phoneNumber || !formData.age || !formData.experience || !formData.specialization || !formData.degree) {
+      setError("Please fill in all required fields: Name, Email, Password, Phone, Age, Experience, Specialization, and Degree");
       return;
     }
 
@@ -141,35 +141,39 @@ function DoctorRegistration({ onBack, onSuccess }) {
         />
         <input
           type="number"
-          placeholder="Age"
+          placeholder="Age *"
           value={formData.age}
           onChange={handleChange}
           name="age"
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
         />
         <input
           type="number"
-          placeholder="Experience (years)"
+          placeholder="Experience (years) *"
           value={formData.experience}
           onChange={handleChange}
           name="experience"
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
         />
         <input
           type="text"
-          placeholder="Specialization (e.g., Cardiology)"
+          placeholder="Specialization (e.g., Cardiology) *"
           value={formData.specialization}
           onChange={handleChange}
           name="specialization"
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
         />
         <input
           type="text"
-          placeholder="Degree (e.g., MBBS)"
+          placeholder="Degree (e.g., MBBS) *"
           value={formData.degree}
           onChange={handleChange}
           name="degree"
           className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-gray-900 outline-none placeholder:text-gray-500"
+          required
         />
         <input
           type="url"

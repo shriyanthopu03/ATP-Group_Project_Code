@@ -237,7 +237,23 @@ export const buildPatientProfileForm = (patient = {}) => ({
   age: patient.age ?? "",
   phoneNumber: patient.phoneNumber || "",
   address: patient.address || "",
+  experience: patient.experience || "",
+  specialization: patient.specialization || "",
+  degree: patient.degree || "",
   profileImageUrl: patient.profileImageUrl || "",
+});
+
+export const buildDoctorProfileForm = (doctor = {}) => ({
+  firstName: doctor.firstName || "",
+  lastName: doctor.lastName || "",
+  email: doctor.email || "",
+  password: doctor.password || "",
+  age: doctor.age ?? "",
+  phoneNumber: doctor.phoneNumber || "",
+  experience: doctor.experience || "",
+  specialization: doctor.specialization || "",
+  degree: doctor.degree || "",
+  profileImageUrl: doctor.profileImageUrl || "",
 });
 
 export const formatDate = (dateValue) =>
