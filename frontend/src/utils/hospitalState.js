@@ -284,7 +284,8 @@ export const getMonthCells = (monthValue, appointments) => {
     const currentDate = `${year}-${monthPad}-${dayPad}`;
     const dayAppointments = (appointments || []).filter((entry) => {
        const aptDate = String(entry.appointmentDate || entry.date || "").split('T')[0];
-       return aptDate === currentDate;
+       // Only count appointments that are NOT completed
+       return aptDate === currentDate && entry.status !== "completed";
     });
     cells.push({ day, currentDate, dayAppointments });
   }

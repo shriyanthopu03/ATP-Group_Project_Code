@@ -1,6 +1,38 @@
-﻿import React from 'react';
+﻿import React, { useMemo } from 'react';
 
 const Appointment = ({ saveAppointment, appointmentForm, setAppointmentForm, state }) => {
+  const timeSlots = [
+    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", 
+    "12:00", "12:30", "14:00", "14:30", "15:00", "15:30", 
+    "16:00", "16:30", "17:00"
+  ];
+
+  const bookedTimes = useMemo(() => {
+    if (!appointmentForm.doctorId || !appointmentForm.appointmentDate) return [];
+    
+    // Add debugging log
+    console.log("Checking booked times for:", {
+      doctor: appointmentForm.doctorId,
+      date: appointmentForm.appointmentDate,
+      totalAppointments: state.appointments.length
+    });
+
+    return state.appointments
+      .filter(apt => {
+        const aptDoctorId = String(apt.doctorId || apt.doctor?._id || apt.doctor);
+        const selectedDoctorId = String(appointmentForm.doctorId);
+        const aptDate = (apt.appointmentDate || (apt.datetime ? String(apt.datetime).split('T')[0] : ""));
+        const matches = aptDoctorId === selectedDoctorId && 
+                        aptDate === appointmentForm.appointmentDate &&
+                        apt.status !== "cancelled" &&
+                        apt.status !== "completed";
+        
+        if (matches) console.log("Found match:", apt);
+        return matches;
+      })
+      .map(apt => apt.appointmentTime || (apt.datetime ? String(apt.datetime).split('T')[1]?.slice(0, 5) : ""));
+  }, [state.appointments, appointmentForm.doctorId, appointmentForm.appointmentDate]);
+
   return (
     <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
       <form onSubmit={saveAppointment}>
@@ -47,12 +79,24 @@ const Appointment = ({ saveAppointment, appointmentForm, setAppointmentForm, sta
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Time</label>
-              <input 
-                type="time" 
+              <select 
                 value={appointmentForm.appointmentTime} 
                 onChange={(event) => setAppointmentForm((prev) => ({ ...prev, appointmentTime: event.target.value }))} 
-                className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-400 transition-all" 
-              />
+                className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-800 outline-none focus:border-blue-400 transition-all"
+                required
+              >
+                <option value="">Select Time</option>
+                {timeSlots.map(time => (
+                  <option 
+                    key={time} 
+                    value={time} 
+                    disabled={bookedTimes.includes(time)}
+                    className={bookedTimes.includes(time) ? "text-slate-300" : "text-slate-900"}
+                  >
+                    {time} {bookedTimes.includes(time) ? "(Already Booked)" : ""}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

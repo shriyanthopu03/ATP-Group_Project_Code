@@ -61,14 +61,19 @@ const HospitalDashboard = ({ user, onLogout }) => {
           if (appointmentsFromDb && appointmentsFromDb.length > 0) {
             draft.appointments = appointmentsFromDb.map(apt => {
               const id = String(apt._id || apt.id);
+              // Log the raw and processed date for debugging
+              const rawDatetime = apt.datetime || apt.appointmentDate;
+              const datePart = rawDatetime ? String(rawDatetime).split('T')[0] : "";
+              const timePart = rawDatetime?.includes('T') ? String(rawDatetime).split('T')[1]?.slice(0, 5) : (apt.appointmentTime || "");
+
               return {
                 ...apt,
                 _id: id,
                 id: id,
-                doctorId: apt.doctor?._id || apt.doctor,
-                patientId: apt.patient?._id || apt.patient,
-                appointmentDate: apt.datetime ? String(apt.datetime).split('T')[0] : "",
-                appointmentTime: apt.datetime ? String(apt.datetime).split('T')[1]?.slice(0, 5) : ""
+                doctorId: String(apt.doctor?._id || apt.doctor),
+                patientId: String(apt.patient?._id || apt.patient),
+                appointmentDate: datePart,
+                appointmentTime: timePart
               };
             });
           }

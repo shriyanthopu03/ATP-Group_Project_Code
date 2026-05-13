@@ -84,6 +84,15 @@ export const useAuth = create((set) => ({
       throw new Error(errorMessage);
     }
   },
+  updateAppointmentStatus: async (appointmentId, status) => {
+    try {
+      const res = await axios.put(`${API_BASE_URL}/appointments/${appointmentId}`, { status }, { withCredentials: true });
+      return res.data;
+    } catch (err) {
+      console.error("Failed to update appointment status:", err);
+      throw err;
+    }
+  },
   fetchAppointments: async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/appointments`, { withCredentials: true });

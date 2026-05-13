@@ -23,6 +23,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [doctorProfileForm, setDoctorProfileForm] = useState(() => buildDoctorProfileForm(currentUser));
   const savePrescriptionApi = useAuth((state) => state.savePrescription);
+  const updateAppointmentStatus = useAuth((state) => state.updateAppointmentStatus);
 
   const { register: registerPrescription, handleSubmit: handleSubmitPrescription, reset: resetPrescription, setValue: setPrescriptionValue } = useForm({
     defaultValues: emptyPrescription
@@ -63,14 +64,19 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
     window.location.href = mailto;
   };
 
-  const markCompleted = (appointmentId) => {
-    mutateHospitalState((draft) => {
-      draft.appointments = draft.appointments.map((entry) =>
-        entry.id === appointmentId ? { ...entry, status: "completed" } : entry,
-      );
-      return draft;
-    });
-    refreshState();
+  const markCompleted = async (appointmentId) => {
+    try {
+      await updateAppointmentStatus(appointmentId, "completed");
+      mutateHospitalState((draft) => {
+        draft.appointments = draft.appointments.map((entry) =>
+          entry.id === appointmentId ? { ...entry, status: "completed" } : entry,
+        );
+        return draft;
+      });
+      refreshState();
+    } catch (err) {
+      alert("Failed to mark appointment as completed: " + err.message);
+    }
   };
 
   const onSavePrescription = async (data) => {
