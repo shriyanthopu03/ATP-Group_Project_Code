@@ -14,7 +14,7 @@ const AppointmentCard = ({ appointment, userRole, state }) => {
             ? (doctor ? ("Dr. " + doctor.firstName + " " + doctor.lastName) : "Specialist Assigned")
             : ((patient?.firstName || "Patient") + " " + (patient?.lastName || ""))}
         </p>
-        <p className="mt-1 text-[11px] font-medium text-slate-400 truncate">{appointment.reason || "General Checkup"}</p>
+        <p className="mt-1 text-[11px] font-medium text-slate-400 truncate">{appointment.reason?.trim() || appointment.notes?.trim() || "No reason provided"}</p>
       </div>
     </div>
   );

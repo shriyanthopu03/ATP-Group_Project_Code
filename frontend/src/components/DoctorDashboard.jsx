@@ -1,12 +1,10 @@
-﻿import React, { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { useForm } from "react-hook-form";
 import { 
   mutateHospitalState, 
   emptyPrescription, 
-  emptyHistory, 
   formatMonthValue, 
   getMonthCells,
-  buildReminderMailto,
   buildDoctorProfileForm
 } from "../utils/hospitalState";
 import { useAuth } from "../store/authStore";
@@ -19,7 +17,6 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
   const [calendarMonth, setCalendarMonth] = useState(formatMonthValue(new Date()));
   const [selectedDay, setSelectedDay] = useState("");
   const [editingPrescriptionId, setEditingPrescriptionId] = useState(null);
-  const [editingHistoryId, setEditingHistoryId] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [doctorProfileForm, setDoctorProfileForm] = useState(() => buildDoctorProfileForm(currentUser));
   const savePrescriptionApi = useAuth((state) => state.savePrescription);
@@ -28,10 +25,6 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
 
   const { register: registerPrescription, handleSubmit: handleSubmitPrescription, reset: resetPrescription, setValue: setPrescriptionValue } = useForm({
     defaultValues: emptyPrescription
-  });
-
-  const { register: registerHistory, handleSubmit: handleSubmitHistory, reset: resetHistory, setValue: setHistoryValue } = useForm({
-    defaultValues: emptyHistory
   });
 
   const myAppointments = useMemo(() => {
@@ -52,7 +45,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
       return aptDate === selectedDay;
     });
   }, [selectedDay, myAppointments]);
-  
+
   const sendReminder = null;
 
   const markCompleted = async (appointmentId) => {
@@ -60,7 +53,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
       await updateAppointmentStatus(appointmentId, "completed");
       mutateHospitalState((draft) => {
         draft.appointments = draft.appointments.map((entry) =>
-          entry.id === appointmentId ? { ...entry, status: "completed" } : entry,
+          entry.id === appointmentId ? { ...entry, status: "completed", isActive: false } : entry,
         );
         return draft;
       });
@@ -133,26 +126,6 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
       console.error("Prescription error:", err);
       alert("Failed to save prescription: " + err.message);
     }
-  };
-
-  const onSaveHistory = (data) => {
-    mutateHospitalState((draft) => {
-      if (editingHistoryId) {
-        draft.histories = draft.histories.map((entry) => (entry.id === editingHistoryId ? { ...entry, ...data } : entry));
-        return draft;
-      }
-
-      draft.histories.push({
-        id: `${Date.now()}`,
-        ...data,
-        doctorId: currentUser.id,
-        visitDate: new Date().toISOString(),
-      });
-      return draft;
-    });
-    refreshState();
-    setEditingHistoryId(null);
-    resetHistory(emptyHistory);
   };
 
   const saveDoctorProfile = async (event) => {
@@ -254,7 +227,6 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
                     markCompleted={markCompleted} 
                     sendReminder={sendReminder} 
                     setPrescriptionValue={setPrescriptionValue} 
-                    setHistoryValue={setHistoryValue} 
                     setActiveTab={setActiveTab} 
                   />
                 ))
@@ -299,29 +271,33 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
             <button type="submit" className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all">{editingPrescriptionId ? "UPDATE PRESCRIPTION" : "SAVE PRESCRIPTION"}</button>
           </form>
 
-          <form onSubmit={handleSubmitHistory(onSaveHistory)} className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Medical history logs</h2>
-            <div className="mt-6 grid gap-3">
-              <select {...registerHistory("patientId")} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-                <option value="">Select patient</option>
-                {state.patients.map((patient) => (
-                  <option key={patient.id} value={patient.id} className="text-slate-900">{patient.firstName} {patient.lastName}</option>
-                ))}
-              </select>
-              <select {...registerHistory("appointmentId")} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-                <option value="">Select appointment</option>
-                {completedAppointments.map((appointment) => (
-                  <option key={appointment.id} value={appointment.id} className="text-slate-900">
-                    {state.patients.find(p => p.id === appointment.patientId)?.firstName || "Patient"} - {appointment.appointmentDate}
-                  </option>
-                ))}
-              </select>
-              <input {...registerHistory("condition")} placeholder="Condition" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
-              <input {...registerHistory("treatment")} placeholder="Treatment" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
-              <textarea {...registerHistory("notes")} placeholder="Detailed Notes" className="min-h-24 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400" />
+          <div className="xl:col-span-2 rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Previous appointments</h2>
+            <div className="mt-6 space-y-4">
+              {completedAppointments.length > 0 ? (
+                completedAppointments.map((appointment) => {
+                  const patient = state.patients.find((entry) => String(entry.id) === String(appointment.patientId));
+
+                  return (
+                    <div key={appointment.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                      <p className="font-black text-slate-800 text-lg">
+                        {patient?.firstName || "Patient"} {patient?.lastName || ""}
+                      </p>
+                      <p className="text-base font-bold text-slate-500 mt-1">
+                        {appointment.appointmentDate} at {appointment.appointmentTime || "--:--"}
+                      </p>
+                      <p className="text-sm font-bold text-slate-600 mt-1 truncate">
+                        {appointment.reason || "No reason provided"}
+                      </p>
+                      <p className="mt-2 text-xs font-black uppercase text-emerald-600">Completed</p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm font-bold text-slate-400">No completed appointments yet.</p>
+              )}
             </div>
-            <button type="submit" className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 transition-all">{editingHistoryId ? "UPDATE LOG" : "SAVE LOG"}</button>
-          </form>
+          </div>
         </div>
       )}
 

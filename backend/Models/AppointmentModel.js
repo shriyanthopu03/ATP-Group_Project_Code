@@ -7,6 +7,7 @@ const appointmentSchema = new Schema(
     datetime: { type: Date, required: true },
     reason: { type: String },
     status: { type: String, enum: ["scheduled", "completed", "cancelled"], default: "scheduled" },
+    isActive: { type: Boolean, default: true, index: true },
   },
   { timestamps: true, versionKey: false }
 );

@@ -76,19 +76,6 @@ const createSeedState = () => {
         prescribedAt: new Date().toISOString(),
       },
     ],
-    histories: [
-      {
-        id: createId(),
-        patientId,
-        doctorId,
-        appointmentId,
-        condition: "Hypertension",
-        symptoms: "Headache, fatigue",
-        treatment: "Lifestyle adjustment and medication",
-        notes: "Patient responding well",
-        visitDate: new Date().toISOString(),
-      },
-    ],
   };
 };
 
@@ -98,7 +85,6 @@ const normalizeState = (state) => ({
   doctors: Array.isArray(state?.doctors) ? state.doctors : [],
   appointments: Array.isArray(state?.appointments) ? state.appointments : [],
   prescriptions: Array.isArray(state?.prescriptions) ? state.prescriptions : [],
-  histories: Array.isArray(state?.histories) ? state.histories : [],
 });
 
 export const loadHospitalState = () => {
@@ -216,16 +202,6 @@ export const emptyPrescription = {
   dosage: "",
   duration: "",
   instructions: "",
-  notes: "",
-};
-
-export const emptyHistory = {
-  patientId: "",
-  doctorId: "",
-  appointmentId: "",
-  condition: "",
-  symptoms: "",
-  treatment: "",
   notes: "",
 };
 

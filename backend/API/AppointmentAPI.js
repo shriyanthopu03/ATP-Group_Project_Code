@@ -7,14 +7,26 @@ const toAppointmentPayload = (body) => {
   const patient = body.patient ?? body.patientId;
   const doctor = body.doctor ?? body.doctorId;
   const datetime = body.datetime || (body.appointmentDate ? new Date(`${body.appointmentDate}T${body.appointmentTime || "00:00"}:00`) : undefined);
+  const status = body.status;
 
-  return {
-    ...body,
-    patient,
-    doctor,
-    datetime,
+  let isActive = body.isActive;
+  if (status === "completed" || status === "cancelled") {
+    isActive = false;
+  } else if (status === "scheduled") {
+    isActive = true;
+  }
+
+  const payload = {
     reason: body.reason || body.notes || "",
   };
+
+  if (patient !== undefined) payload.patient = patient;
+  if (doctor !== undefined) payload.doctor = doctor;
+  if (datetime !== undefined) payload.datetime = datetime;
+  if (status !== undefined) payload.status = status;
+  if (isActive !== undefined) payload.isActive = isActive;
+
+  return payload;
 };
 
 appointmentApp.post("/appointments", async (req, res, next) => {
@@ -33,6 +45,8 @@ appointmentApp.get("/appointments", async (req, res, next) => {
     const query = {};
     if (req.query.patient || req.query.patientId) query.patient = req.query.patient || req.query.patientId;
     if (req.query.doctor || req.query.doctorId) query.doctor = req.query.doctor || req.query.doctorId;
+    if (req.query.isActive === "true" || req.query.active === "true") query.isActive = true;
+    if (req.query.isActive === "false" || req.query.active === "false") query.isActive = false;
     const list = await AppointmentModel.find(query).populate("patient doctor");
     return res.status(200).json({ message: "Appointments fetched", payload: list });
   } catch (err) {

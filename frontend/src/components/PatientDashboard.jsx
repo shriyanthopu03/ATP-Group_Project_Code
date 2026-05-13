@@ -1,9 +1,8 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useMemo, useState } from 'react';
 import { loadHospitalState, mutateHospitalState, buildPatientProfileForm, emptyAppointment } from "../utils/hospitalState";
 import { useAuth } from "../store/authStore";
 import EntityPill from "./EntityPill";
 import Appointment from "./appointment";
-import HistoryCard from "./HistoryCard";
 import PrescriptionCard from "./PrescriptionCard";
 import PatientProfileForm from "./PatientProfileForm";
 
@@ -13,6 +12,13 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
   const [patientProfileForm, setPatientProfileForm] = useState(() => buildPatientProfileForm(currentUser));
   const bookAppointment = useAuth((state) => state.bookAppointment);
   const updatePatient = useAuth((state) => state.updatePatient);
+
+  const previousAppointments = useMemo(() => {
+    const patientId = String(currentUser?._id || user?.id);
+    return (state.appointments || []).filter((entry) =>
+      String(entry.patientId) === patientId && (entry.status === "completed" || entry.isActive === false),
+    );
+  }, [state.appointments, currentUser?._id, user?.id]);
 
   const saveAppointment = async (event) => {
     event.preventDefault();
@@ -35,7 +41,8 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
           ...appointmentForm,
           id: dbResponse.payload?._id || dbResponse.payload?.id || `${Date.now()}`,
           reminderSent: false,
-          status: "scheduled"
+          status: "scheduled",
+          isActive: true
         };
         draft.appointments.push(JSON.parse(JSON.stringify(newAppointment)));
         return draft;
@@ -102,16 +109,7 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
       )}
 
       {activeTab === "records" && (
-        <div className="grid gap-6 xl:grid-cols-2">
-          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl text-slate-800">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Medical history</h2>
-            <div className="mt-6 space-y-4">
-              {state.histories.filter((entry) => String(entry.patientId) === String(user.id)).map((entry) => (
-                <HistoryCard key={entry.id} history={entry} />
-              ))}
-            </div>
-          </div>
-
+        <div className="grid gap-6 xl:grid-cols-3">
           <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl text-slate-800">
             <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Prescriptions</h2>
             <div className="mt-6 space-y-4">
@@ -120,6 +118,27 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
               ))}
               {state.prescriptions.filter((entry) => String(entry.patientId) === String(currentUser?._id || user?.id)).length === 0 && (
                 <p className="text-slate-400 font-bold text-center py-4">No prescriptions found.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl text-slate-800">
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Previous appointments</h2>
+            <div className="mt-6 space-y-4">
+              {previousAppointments.length > 0 ? (
+                previousAppointments.map((appointment) => (
+                  <div key={appointment.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                    <p className="font-black text-slate-800 text-lg">
+                      {appointment.appointmentDate} at {appointment.appointmentTime || "--:--"}
+                    </p>
+                    <p className="text-base font-bold text-slate-500 mt-1 truncate">
+                      {appointment.reason || "No reason provided"}
+                    </p>
+                    <p className="mt-2 text-xs font-black uppercase text-emerald-600">Completed</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-slate-400 font-bold text-center py-4">No previous appointments found.</p>
               )}
             </div>
           </div>

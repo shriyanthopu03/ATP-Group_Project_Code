@@ -7,7 +7,6 @@ import { patientApp } from "./API/PatientAPI.js";
 import { commonApp } from "./API/CommonAPI.js";
 import { AppointmentAPI } from "./API/AppointmentAPI.js";
 import { PrescriptionAPI } from "./API/PrescriptionAPI.js";
-import { MedicalHistoryAPI } from "./API/MedicalHistoryAPI.js";
 import cookieParser from "cookie-parser";
 import cors from 'cors'
 config();
@@ -30,7 +29,6 @@ app.use("/api", DoctorAPI);
 app.use("/api", patientApp);
 app.use("/api", AppointmentAPI);
 app.use("/api", PrescriptionAPI);
-app.use("/api", MedicalHistoryAPI);
 
 //connect to db
 const connectDB = async () => {

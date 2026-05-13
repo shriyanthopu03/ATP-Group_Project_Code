@@ -176,7 +176,6 @@ function AdminDashboard({
               <EntityPill label="Active patients" value={state.patients.filter((entry) => entry.isPatientActive).length} />
               <EntityPill label="Active doctors" value={state.doctors.filter((entry) => entry.isDoctorActive).length} />
               <EntityPill label="Prescriptions" value={state.prescriptions.length} />
-              <EntityPill label="Medical logs" value={state.histories.length} />
             </div>
           </div>
 
@@ -254,7 +253,6 @@ function AdminDashboard({
                             draft.users = draft.users.filter((entry) => entry.id !== patient.id);
                             draft.appointments = draft.appointments.filter((entry) => entry.patientId !== patient.id);
                             draft.prescriptions = draft.prescriptions.filter((entry) => entry.patientId !== patient.id);
-                            draft.histories = draft.histories.filter((entry) => entry.patientId !== patient.id);
                             return draft;
                           });
                           refreshState();
@@ -332,7 +330,6 @@ function AdminDashboard({
                             draft.users = draft.users.filter((entry) => entry.id !== doctor.id);
                             draft.appointments = draft.appointments.filter((entry) => entry.doctorId !== doctor.id);
                             draft.prescriptions = draft.prescriptions.filter((entry) => entry.doctorId !== doctor.id);
-                            draft.histories = draft.histories.filter((entry) => entry.doctorId !== doctor.id);
                             return draft;
                           });
                           refreshState();

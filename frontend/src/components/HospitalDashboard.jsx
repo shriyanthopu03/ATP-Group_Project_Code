@@ -73,7 +73,8 @@ const HospitalDashboard = ({ user, onLogout }) => {
                 doctorId: String(apt.doctor?._id || apt.doctor),
                 patientId: String(apt.patient?._id || apt.patient),
                 appointmentDate: datePart,
-                appointmentTime: timePart
+                appointmentTime: timePart,
+                isActive: typeof apt.isActive === "boolean" ? apt.isActive : (typeof apt.active === "boolean" ? apt.active : apt.status !== "completed")
               };
             });
           }
@@ -118,7 +119,12 @@ const HospitalDashboard = ({ user, onLogout }) => {
   const upcomingAppointments = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
     return [...myAppointments]
-      .filter((entry) => entry.appointmentDate >= today)
+      .filter((entry) =>
+        entry.appointmentDate >= today &&
+        entry.isActive !== false &&
+        entry.status !== "completed" &&
+        entry.status !== "cancelled"
+      )
       .sort((left, right) => {
         const leftDate = new Date(`${left.appointmentDate}T${left.appointmentTime || "00:00"}`);
         const rightDate = new Date(`${right.appointmentDate}T${right.appointmentTime || "00:00"}`);
@@ -131,8 +137,8 @@ const HospitalDashboard = ({ user, onLogout }) => {
     userRole === "ADMIN"
       ? ["overview", "patients", "doctors", "appointments", "search"]
       : userRole === "DOCTOR"
-        ? ["schedule", "records", "search", "profile"]
-        : ["book", "records", "profile"];
+        ? ["schedule", "records"]
+        : ["book", "records"];
 
   return (
     <div className="min-h-screen bg-transparent text-slate-800 selection:bg-blue-500/10">
@@ -146,34 +152,71 @@ const HospitalDashboard = ({ user, onLogout }) => {
           userRole={userRole} 
           currentUser={currentUser} 
           onLogout={onLogout} 
+          setActiveTab={setActiveTab}
+          activeTab={activeTab}
         />
 
-        <UpcomingAppointments 
-          upcomingAppointments={upcomingAppointments} 
-          userRole={userRole} 
-          setActiveTab={setActiveTab} 
-          state={state} 
-        />
+        {userRole === "DOCTOR" ? (
+          <>
+            <UpcomingAppointments 
+              upcomingAppointments={upcomingAppointments} 
+              userRole={userRole} 
+              setActiveTab={setActiveTab} 
+              state={state} 
+            />
 
-        <NavigationTabs 
-          tabs={tabs} 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab} 
-        />
+            <NavigationTabs 
+              tabs={tabs} 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
+            />
 
-        <div className="mt-8">
-          {userRole === "ADMIN" && (
-            <AdminDashboard activeTab={activeTab} state={state} setActiveTab={setActiveTab} refreshState={refreshState} />
-          )}
+            <div className="mt-8">
+              <DoctorDashboard activeTab={activeTab} state={state} setActiveTab={setActiveTab} currentUser={currentUser} refreshState={refreshState} />
+            </div>
+          </>
+        ) : userRole === "PATIENT" ? (
+          <>
+            <UpcomingAppointments 
+              upcomingAppointments={upcomingAppointments} 
+              userRole={userRole} 
+              setActiveTab={setActiveTab} 
+              state={state} 
+            />
 
-          {userRole === "DOCTOR" && (
-            <DoctorDashboard activeTab={activeTab} state={state} setActiveTab={setActiveTab} currentUser={currentUser} refreshState={refreshState} />
-          )}
+            <NavigationTabs 
+              tabs={tabs} 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
+            />
 
-          {userRole === "PATIENT" && (
-            <PatientDashboard activeTab={activeTab} state={state} user={user} currentUser={currentUser} refreshState={refreshState} />
-          )}
-        </div>
+            <div className="mt-8">
+              <PatientDashboard activeTab={activeTab} state={state} user={user} currentUser={currentUser} refreshState={refreshState} />
+            </div>
+          </>
+        ) : (
+          <>
+            <UpcomingAppointments 
+              upcomingAppointments={upcomingAppointments} 
+              userRole={userRole} 
+              setActiveTab={setActiveTab} 
+              state={state} 
+            />
+
+            <NavigationTabs 
+              tabs={tabs} 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab} 
+            />
+
+            <div className="mt-8">
+              {userRole === "ADMIN" && (
+                <AdminDashboard activeTab={activeTab} state={state} setActiveTab={setActiveTab} refreshState={refreshState} />
+              )}
+
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

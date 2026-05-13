@@ -23,10 +23,10 @@ const AppointmentListItem = ({ appointment, state, markCompleted, sendReminder, 
         )}
         <button 
           onClick={() => {
-            setPrescriptionValue("appointmentId", appointment.id);
-            setPrescriptionValue("patientId", appointment.patientId);
-            setHistoryValue("appointmentId", appointment.id);
-            setHistoryValue("patientId", appointment.patientId);
+            setPrescriptionValue?.("appointmentId", appointment.id);
+            setPrescriptionValue?.("patientId", appointment.patientId);
+            setHistoryValue?.("appointmentId", appointment.id);
+            setHistoryValue?.("patientId", appointment.patientId);
             setActiveTab("records");
           }} 
           className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-black text-white shadow-lg shadow-blue-500/20 hover:scale-105 transition-all"
@@ -34,7 +34,7 @@ const AppointmentListItem = ({ appointment, state, markCompleted, sendReminder, 
           ADD RECORD
         </button>
         <button 
-          onClick={() => sendReminder(appointment)} 
+          onClick={() => sendReminder?.(appointment)} 
           className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-2 text-xs font-black text-slate-600 hover:bg-slate-100 transition-all"
         >
           REMINDER
