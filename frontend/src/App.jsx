@@ -9,9 +9,10 @@ import PatientRegistration from "./components/PatientRegistration";
 import AdminRegistration from "./components/AdminRegistration";
 import Login from "./components/Login";
 import HospitalDashboard from "./components/HospitalDashboard";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+import { config } from "dotenv";
+config()
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000/api";
+const SOCKET_URL = process.env.SOCKET_URL || "http://localhost:5000";
 
 const useAppStore = create((set) => ({
   selectedRole: "PATIENT",
@@ -23,7 +24,7 @@ const useAppStore = create((set) => ({
 
 function AppLayout() {
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/status`, { withCredentials: true }).catch(() => {
+    axios.get(`${BACKEND_URL}/status`, { withCredentials: true }).catch(() => {
       // The app can still run in local mock mode if backend is unavailable.
     });
   }, []);

@@ -1,6 +1,6 @@
 ﻿import React from "react";
 
-const NavigationTabs = ({ tabs, activeTab, setActiveTab }) => {
+const NavigationTabs = ({ tabs, activeTab, setActiveTab, tabLabels = {} }) => {
   return (
     <nav className="mb-10 flex flex-wrap gap-3 rounded-2xl border border-white bg-white/70 p-3 backdrop-blur-xl shadow-md shadow-blue-500/5">
       {tabs.map((tab) => (
@@ -14,7 +14,7 @@ const NavigationTabs = ({ tabs, activeTab, setActiveTab }) => {
           }`}
         >
           <span className={activeTab === tab ? "drop-shadow-sm" : ""}>
-            {tab}
+            {tabLabels[tab] || tab}
           </span>
         </button>
       ))}

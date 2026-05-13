@@ -1,10 +1,12 @@
 import exp from "express";
 import { PrescriptionModel } from "../Models/PrescriptionModel.js";
+import { AppointmentModel } from "../Models/AppointmentModel.js";
 
 const prescriptionApp = exp.Router();
 
 const toPrescriptionPayload = (body) => ({
   ...body,
+  appointment: body.appointment ?? body.appointmentId,
   patient: body.patient ?? body.patientId,
   doctor: body.doctor ?? body.doctorId,
   medications: body.medications || body.medicines || [],
@@ -16,6 +18,16 @@ prescriptionApp.post("/prescriptions", async (req, res, next) => {
     const data = toPrescriptionPayload(req.body);
     const presc = new PrescriptionModel(data);
     await presc.save();
+
+    const appointmentId = data.appointmentId || data.appointment;
+    if (appointmentId) {
+      await AppointmentModel.findByIdAndUpdate(
+        appointmentId,
+        { prescriptionId: presc._id },
+        { new: true, runValidators: true },
+      );
+    }
+
     return res.status(201).json({ message: "Prescription created", payload: presc });
   } catch (err) {
     return next(err);

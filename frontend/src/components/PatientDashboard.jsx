@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { loadHospitalState, mutateHospitalState, buildPatientProfileForm, emptyAppointment } from "../utils/hospitalState";
 import { useAuth } from "../store/authStore";
 import EntityPill from "./EntityPill";
@@ -9,6 +9,7 @@ import PatientProfileForm from "./PatientProfileForm";
 const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState }) => {
   const [appointmentForm, setAppointmentForm] = useState({ ...emptyAppointment, patientId: user.id });
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState("");
   const [patientProfileForm, setPatientProfileForm] = useState(() => buildPatientProfileForm(currentUser));
   const bookAppointment = useAuth((state) => state.bookAppointment);
   const updatePatient = useAuth((state) => state.updatePatient);
@@ -19,6 +20,26 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
       String(entry.patientId) === patientId && (entry.status === "completed" || entry.isActive === false),
     );
   }, [state.appointments, currentUser?._id, user?.id]);
+
+  const selectedPreviousAppointment = useMemo(
+    () => previousAppointments.find((entry) => String(entry.id) === String(selectedAppointmentId)) || previousAppointments[0] || null,
+    [previousAppointments, selectedAppointmentId],
+  );
+
+  const selectedAppointmentPrescriptions = useMemo(() => {
+    if (!selectedPreviousAppointment) return [];
+    const appointmentId = String(selectedPreviousAppointment.id);
+    return (state.prescriptions || []).filter((entry) => String(entry.appointmentId || entry.appointment?._id || entry.appointment) === appointmentId);
+  }, [state.prescriptions, selectedPreviousAppointment]);
+
+  useEffect(() => {
+    if (!selectedAppointmentId && previousAppointments.length > 0) {
+      setSelectedAppointmentId(previousAppointments[0].id);
+    }
+    if (selectedAppointmentId && !previousAppointments.some((entry) => String(entry.id) === String(selectedAppointmentId))) {
+      setSelectedAppointmentId(previousAppointments[0]?.id || "");
+    }
+  }, [previousAppointments, selectedAppointmentId]);
 
   const saveAppointment = async (event) => {
     event.preventDefault();
@@ -109,36 +130,50 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
       )}
 
       {activeTab === "records" && (
-        <div className="grid gap-6 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-2">
           <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl text-slate-800">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Prescriptions</h2>
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Previous appointments</h2>
             <div className="mt-6 space-y-4">
-              {state.prescriptions.filter((entry) => String(entry.patientId) === String(currentUser?._id || user?.id)).map((entry) => (
-                <PrescriptionCard key={entry.id} prescription={entry} />
-              ))}
-              {state.prescriptions.filter((entry) => String(entry.patientId) === String(currentUser?._id || user?.id)).length === 0 && (
-                <p className="text-slate-400 font-bold text-center py-4">No prescriptions found.</p>
+              {previousAppointments.length > 0 ? (
+                previousAppointments.map((appointment) => {
+                  const isSelected = String(selectedPreviousAppointment?.id) === String(appointment.id);
+
+                  return (
+                    <button
+                      key={appointment.id}
+                      type="button"
+                      onClick={() => setSelectedAppointmentId(appointment.id)}
+                      className={`w-full rounded-2xl border p-5 text-left shadow-sm transition ${isSelected ? "border-blue-400 bg-blue-50" : "border-slate-100 bg-white hover:bg-slate-50"}`}
+                    >
+                      <p className="font-black text-slate-800 text-lg">
+                        {appointment.appointmentDate} at {appointment.appointmentTime || "--:--"}
+                      </p>
+                      <p className="text-base font-bold text-slate-500 mt-1 truncate">
+                        {appointment.reason || "No reason provided"}
+                      </p>
+                      <p className="mt-2 text-xs font-black uppercase text-emerald-600">Completed</p>
+                    </button>
+                  );
+                })
+              ) : (
+                <p className="text-slate-400 font-bold text-center py-4">No previous appointments found.</p>
               )}
             </div>
           </div>
 
           <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl text-slate-800">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Previous appointments</h2>
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Prescriptions for selected appointment</h2>
             <div className="mt-6 space-y-4">
-              {previousAppointments.length > 0 ? (
-                previousAppointments.map((appointment) => (
-                  <div key={appointment.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                    <p className="font-black text-slate-800 text-lg">
-                      {appointment.appointmentDate} at {appointment.appointmentTime || "--:--"}
-                    </p>
-                    <p className="text-base font-bold text-slate-500 mt-1 truncate">
-                      {appointment.reason || "No reason provided"}
-                    </p>
-                    <p className="mt-2 text-xs font-black uppercase text-emerald-600">Completed</p>
-                  </div>
-                ))
+              {selectedPreviousAppointment ? (
+                selectedAppointmentPrescriptions.length > 0 ? (
+                  selectedAppointmentPrescriptions.map((prescription) => (
+                    <PrescriptionCard key={prescription.id} prescription={prescription} />
+                  ))
+                ) : (
+                  <p className="text-slate-400 font-bold text-center py-4">No prescriptions found for this appointment.</p>
+                )
               ) : (
-                <p className="text-slate-400 font-bold text-center py-4">No previous appointments found.</p>
+                <p className="text-slate-400 font-bold text-center py-4">Select a previous appointment to see prescriptions.</p>
               )}
             </div>
           </div>

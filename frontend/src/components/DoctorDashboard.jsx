@@ -82,7 +82,8 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
         prescribedAt: new Date().toISOString()
       };
 
-      await savePrescriptionApi(payload);
+      const savedPrescriptionResponse = await savePrescriptionApi(payload);
+      const savedPrescriptionId = savedPrescriptionResponse?.payload?._id || savedPrescriptionResponse?.payload?.id;
 
       mutateHospitalState((draft) => {
         const medicines = data.medicineName
@@ -106,7 +107,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
         }
 
         draft.prescriptions.push({
-          id: `${Date.now()}`,
+          id: savedPrescriptionId || `${Date.now()}`,
           appointmentId: data.appointmentId,
           patientId: data.patientId,
           doctorId: currentUser?._id || currentUser?.id,
@@ -115,6 +116,13 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
           notes: data.notes,
           prescribedAt: new Date().toISOString(),
         });
+
+        const lastPrescription = draft.prescriptions[draft.prescriptions.length - 1];
+        draft.appointments = draft.appointments.map((entry) =>
+          String(entry.id) === String(data.appointmentId)
+            ? { ...entry, prescriptionId: savedPrescriptionId || lastPrescription?.id || entry.prescriptionId }
+            : entry,
+        );
         return draft;
       });
       

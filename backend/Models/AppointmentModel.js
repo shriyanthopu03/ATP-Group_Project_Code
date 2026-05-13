@@ -8,6 +8,7 @@ const appointmentSchema = new Schema(
     reason: { type: String },
     status: { type: String, enum: ["scheduled", "completed", "cancelled"], default: "scheduled" },
     isActive: { type: Boolean, default: true, index: true },
+    prescriptionId: { type: Types.ObjectId, ref: "prescription" },
   },
   { timestamps: true, versionKey: false }
 );

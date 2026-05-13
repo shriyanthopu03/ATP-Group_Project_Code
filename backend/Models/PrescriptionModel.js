@@ -12,6 +12,7 @@ const medicationSchema = new Schema(
 
 const prescriptionSchema = new Schema(
   {
+    appointment: { type: Types.ObjectId, ref: "appointment" },
     patient: { type: Types.ObjectId, ref: "patient", required: true },
     doctor: { type: Types.ObjectId, ref: "doctor", required: true },
     medications: { type: [medicationSchema], default: [] },

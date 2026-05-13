@@ -52,6 +52,7 @@ const HospitalDashboard = ({ user, onLogout }) => {
               ...p,
               _id: String(p._id || p.id),
               id: String(p._id || p.id),
+              appointmentId: p.appointment?._id || p.appointmentId || p.appointment,
               patientId: p.patient?._id || p.patient,
               doctorId: p.doctor?._id || p.doctor,
             }));
@@ -140,6 +141,10 @@ const HospitalDashboard = ({ user, onLogout }) => {
         ? ["schedule", "records"]
         : ["book", "records"];
 
+  const tabLabels = userRole === "PATIENT"
+    ? { records: "Previous appointments" }
+    : {};
+
   return (
     <div className="min-h-screen bg-transparent text-slate-800 selection:bg-blue-500/10">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -169,6 +174,7 @@ const HospitalDashboard = ({ user, onLogout }) => {
               tabs={tabs} 
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
+              tabLabels={tabLabels}
             />
 
             <div className="mt-8">
@@ -188,6 +194,7 @@ const HospitalDashboard = ({ user, onLogout }) => {
               tabs={tabs} 
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
+              tabLabels={tabLabels}
             />
 
             <div className="mt-8">
@@ -207,6 +214,7 @@ const HospitalDashboard = ({ user, onLogout }) => {
               tabs={tabs} 
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
+              tabLabels={tabLabels}
             />
 
             <div className="mt-8">
