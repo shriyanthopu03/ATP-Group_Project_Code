@@ -23,23 +23,9 @@ const useAppStore = create((set) => ({
 
 function AppLayout() {
   useEffect(() => {
-    const socket = io(SOCKET_URL);
-
-    socket.on("connect", () => {
-      console.log("Connected to socket server:", socket.id);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected from socket server");
-    });
-
     axios.get(`${API_BASE_URL}/status`, { withCredentials: true }).catch(() => {
       // The app can still run in local mock mode if backend is unavailable.
     });
-
-    return () => {
-      socket.disconnect();
-    };
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { loadHospitalState, mutateHospitalState, buildPatientProfileForm, emptyAppointment } from "../utils/hospitalState";
+import { useAuth } from "../store/authStore";
 import EntityPill from "./EntityPill";
 import Appointment from "./appointment";
 import HistoryCard from "./HistoryCard";
@@ -10,27 +11,42 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
   const [appointmentForm, setAppointmentForm] = useState({ ...emptyAppointment, patientId: user.id });
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [patientProfileForm, setPatientProfileForm] = useState(() => buildPatientProfileForm(currentUser));
+  const bookAppointment = useAuth((state) => state.bookAppointment);
 
-  const saveAppointment = (event) => {
+  const saveAppointment = async (event) => {
     event.preventDefault();
     if (!appointmentForm.doctorId) {
       alert("Please select a doctor.");
       return;
     }
 
-    mutateHospitalState((draft) => {
-      const newAppointment = {
+    try {
+      // Save to Database
+      // Use currentUser._id specifically to ensure we send the real database ID
+      const dbResponse = await bookAppointment({
         ...appointmentForm,
-        id: `${Date.now()}`,
-        reminderSent: false,
-        status: "scheduled"
-      };
-      draft.appointments.push(JSON.parse(JSON.stringify(newAppointment)));
-      return draft;
-    });
-    
-    setAppointmentForm({ ...emptyAppointment, patientId: user.id });
-    refreshState();
+        patientId: currentUser?._id || user?.id
+      });
+
+      // Save to Local State
+      mutateHospitalState((draft) => {
+        const newAppointment = {
+          ...appointmentForm,
+          id: dbResponse.payload?._id || dbResponse.payload?.id || `${Date.now()}`,
+          reminderSent: false,
+          status: "scheduled"
+        };
+        draft.appointments.push(JSON.parse(JSON.stringify(newAppointment)));
+        return draft;
+      });
+      
+      setAppointmentForm({ ...emptyAppointment, patientId: user.id });
+      refreshState();
+      alert("Appointment booked successfully!");
+    } catch (err) {
+      console.error("Booking error:", err);
+      alert("Failed to book appointment: " + err.message);
+    }
   };
 
   const savePatientProfile = (event) => {
@@ -92,9 +108,12 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
           <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl text-slate-800">
             <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">Prescriptions</h2>
             <div className="mt-6 space-y-4">
-              {state.prescriptions.filter((entry) => String(entry.patientId) === String(user.id)).map((entry) => (
+              {state.prescriptions.filter((entry) => String(entry.patientId) === String(currentUser?._id || user?.id)).map((entry) => (
                 <PrescriptionCard key={entry.id} prescription={entry} />
               ))}
+              {state.prescriptions.filter((entry) => String(entry.patientId) === String(currentUser?._id || user?.id)).length === 0 && (
+                <p className="text-slate-400 font-bold text-center py-4">No prescriptions found.</p>
+              )}
             </div>
           </div>
         </div>

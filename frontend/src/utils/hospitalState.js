@@ -1,4 +1,4 @@
-const STORAGE_KEY = "hospital-portal-data-v1";
+﻿const STORAGE_KEY = "hospital-portal-data-v1";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -279,8 +279,13 @@ export const getMonthCells = (monthValue, appointments) => {
   }
 
   for (let day = 1; day <= totalDays; day += 1) {
-    const currentDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const dayAppointments = appointments.filter((entry) => entry.appointmentDate === currentDate);
+    const monthPad = String(month + 1).padStart(2, "0");
+    const dayPad = String(day).padStart(2, "0");
+    const currentDate = `${year}-${monthPad}-${dayPad}`;
+    const dayAppointments = (appointments || []).filter((entry) => {
+       const aptDate = String(entry.appointmentDate || entry.date || "").split('T')[0];
+       return aptDate === currentDate;
+    });
     cells.push({ day, currentDate, dayAppointments });
   }
 

@@ -2,7 +2,7 @@
 
 const NavigationTabs = ({ tabs, activeTab, setActiveTab }) => {
   return (
-    <nav className="sticky top-6 z-40 mb-8 flex flex-wrap gap-2 rounded-2xl border border-white bg-white/70 p-2 backdrop-blur-xl shadow-md shadow-blue-500/5">
+    <nav className="mb-10 flex flex-wrap gap-3 rounded-2xl border border-white bg-white/70 p-3 backdrop-blur-xl shadow-md shadow-blue-500/5">
       {tabs.map((tab) => (
         <button
           key={tab}

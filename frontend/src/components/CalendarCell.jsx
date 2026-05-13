@@ -27,7 +27,7 @@ const CalendarCell = ({ cell, selectedDay, setSelectedDay }) => {
       <div className="mt-1 flex flex-col gap-1 overflow-hidden">
         {cell.dayAppointments.slice(0, 2).map((apt) => (
           <div key={apt.id} className="truncate text-[9px] font-bold text-slate-500">
-            â€¢ {apt.appointmentTime}
+            {apt.appointmentTime}
           </div>
         ))}
       </div>

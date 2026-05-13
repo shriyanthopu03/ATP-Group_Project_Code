@@ -9,6 +9,7 @@ import {
   buildReminderMailto,
   buildDoctorProfileForm
 } from "../utils/hospitalState";
+import { useAuth } from "../store/authStore";
 import EntityPill from "./EntityPill";
 import CalendarCell from "./CalendarCell";
 import AppointmentListItem from "./AppointmentListItem";
@@ -21,6 +22,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
   const [editingHistoryId, setEditingHistoryId] = useState(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [doctorProfileForm, setDoctorProfileForm] = useState(() => buildDoctorProfileForm(currentUser));
+  const savePrescriptionApi = useAuth((state) => state.savePrescription);
 
   const { register: registerPrescription, handleSubmit: handleSubmitPrescription, reset: resetPrescription, setValue: setPrescriptionValue } = useForm({
     defaultValues: emptyPrescription
@@ -31,15 +33,23 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
   });
 
   const myAppointments = useMemo(() => {
-    const doctorId = String(currentUser?.id);
+    const doctorId = String(currentUser?._id || currentUser?.id);
     return (state.appointments || []).filter((entry) => String(entry.doctorId) === doctorId);
-  }, [state.appointments, currentUser?.id]);
+  }, [state.appointments, currentUser?._id, currentUser?.id]);
 
   const completedAppointments = useMemo(() => {
     return myAppointments.filter(apt => apt.status === "completed");
   }, [myAppointments]);
 
   const selectedMonthCells = useMemo(() => getMonthCells(calendarMonth, myAppointments), [calendarMonth, myAppointments]);
+  
+  const selectedDayAppointments = useMemo(() => {
+    if (!selectedDay) return [];
+    return myAppointments.filter(apt => {
+      const aptDate = String(apt.appointmentDate || "").split('T')[0];
+      return aptDate === selectedDay;
+    });
+  }, [selectedDay, myAppointments]);
   
   const sendReminder = (appointment) => {
     const mailto = buildReminderMailto(appointment, state);
@@ -63,43 +73,69 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
     refreshState();
   };
 
-  const onSavePrescription = (data) => {
-    mutateHospitalState((draft) => {
-      const medicines = data.medicineName
-        ? [
+  const onSavePrescription = async (data) => {
+    try {
+      const payload = {
+        appointmentId: data.appointmentId,
+        patient: data.patientId,
+        doctor: currentUser?._id || currentUser?.id,
+        diagnosis: data.diagnosis,
+        medicines: data.medicineName ? [
           {
             name: data.medicineName,
             dosage: data.dosage,
             duration: data.duration,
             instructions: data.instructions,
-          },
-        ]
-        : [];
-
-      if (editingPrescriptionId) {
-        draft.prescriptions = draft.prescriptions.map((entry) =>
-          entry.id === editingPrescriptionId
-            ? { ...entry, diagnosis: data.diagnosis, medicines, notes: data.notes }
-            : entry,
-        );
-        return draft;
-      }
-
-      draft.prescriptions.push({
-        id: `${Date.now()}`,
-        appointmentId: data.appointmentId,
-        patientId: data.patientId,
-        doctorId: currentUser.id,
-        diagnosis: data.diagnosis,
-        medicines,
+          }
+        ] : [],
         notes: data.notes,
-        prescribedAt: new Date().toISOString(),
+        prescribedAt: new Date().toISOString()
+      };
+
+      await savePrescriptionApi(payload);
+
+      mutateHospitalState((draft) => {
+        const medicines = data.medicineName
+          ? [
+            {
+              name: data.medicineName,
+              dosage: data.dosage,
+              duration: data.duration,
+              instructions: data.instructions,
+            },
+          ]
+          : [];
+
+        if (editingPrescriptionId) {
+          draft.prescriptions = draft.prescriptions.map((entry) =>
+            entry.id === editingPrescriptionId
+              ? { ...entry, diagnosis: data.diagnosis, medicines, notes: data.notes }
+              : entry,
+          );
+          return draft;
+        }
+
+        draft.prescriptions.push({
+          id: `${Date.now()}`,
+          appointmentId: data.appointmentId,
+          patientId: data.patientId,
+          doctorId: currentUser?._id || currentUser?.id,
+          diagnosis: data.diagnosis,
+          medicines,
+          notes: data.notes,
+          prescribedAt: new Date().toISOString(),
+        });
+        return draft;
       });
-      return draft;
-    });
-    refreshState();
-    setEditingPrescriptionId(null);
-    resetPrescription(emptyPrescription);
+      
+      refreshState();
+      setEditingPrescriptionId(null);
+      resetPrescription(emptyPrescription);
+      alert("Prescription saved to database successfully!");
+    } catch (err) {
+      console.error("Prescription error:", err);
+      alert("Failed to save prescription: " + err.message);
+    }
   };
 
   const onSaveHistory = (data) => {
@@ -190,13 +226,26 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
                 />
               ))}
             </div>
+            {/* Added legend to clarify count meanings */}
+            <div className="mt-6 flex items-center gap-4 border-t border-slate-100 pt-4">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-blue-600 shadow-sm" />
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Number of Appointments</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full border border-blue-400 bg-blue-50" />
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Selected Day</span>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-4xl border border-white bg-white/70 p-8 shadow-xl backdrop-blur-xl">
-            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">Today's patients and records</h2>
+            <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">
+              {selectedDay ? `Appointments for ${selectedDay}` : "Today's patients and records"}
+            </h2>
             <div className="mt-6 space-y-4">
-              {myAppointments.length > 0 ? (
-                myAppointments.map((appointment) => (
+              {(selectedDay ? selectedDayAppointments : myAppointments).length > 0 ? (
+                (selectedDay ? selectedDayAppointments : myAppointments).map((appointment) => (
                   <AppointmentListItem 
                     key={appointment.id} 
                     appointment={appointment} 
@@ -210,7 +259,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
                 ))
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-base font-bold text-slate-400 text-center">
-                  No appointments found for your ID.
+                  {selectedDay ? `No appointments found for ${selectedDay}.` : "No appointments found for your ID."}
                 </div>
               )}
             </div>

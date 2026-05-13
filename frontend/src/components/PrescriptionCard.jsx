@@ -11,11 +11,13 @@ const MedicineItem = ({ medicine }) => {
 }
 
 const PrescriptionCard = ({ prescription }) => {
+  const medicines = prescription.medicines || prescription.medications || [];
+
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5 hover:bg-slate-50 transition-colors shadow-sm">
       <p className="font-black text-slate-800 text-lg">{prescription.diagnosis}</p>
       <div className="mt-3 space-y-2">
-        {prescription.medicines.map((med, idx) => (
+        {medicines.map((med, idx) => (
           <MedicineItem key={idx} medicine={med} />
         ))}
       </div>
