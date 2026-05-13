@@ -24,6 +24,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
   const [doctorProfileForm, setDoctorProfileForm] = useState(() => buildDoctorProfileForm(currentUser));
   const savePrescriptionApi = useAuth((state) => state.savePrescription);
   const updateAppointmentStatus = useAuth((state) => state.updateAppointmentStatus);
+  const updateDoctor = useAuth((state) => state.updateDoctor);
 
   const { register: registerPrescription, handleSubmit: handleSubmitPrescription, reset: resetPrescription, setValue: setPrescriptionValue } = useForm({
     defaultValues: emptyPrescription
@@ -52,17 +53,7 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
     });
   }, [selectedDay, myAppointments]);
   
-  const sendReminder = (appointment) => {
-    const mailto = buildReminderMailto(appointment, state);
-    mutateHospitalState((draft) => {
-      draft.appointments = draft.appointments.map((entry) =>
-        entry.id === appointment.id ? { ...entry, reminderSent: true } : entry,
-      );
-      return draft;
-    });
-    refreshState();
-    window.location.href = mailto;
-  };
+  const sendReminder = null;
 
   const markCompleted = async (appointmentId) => {
     try {
@@ -164,40 +155,44 @@ const DoctorDashboard = ({ activeTab, state, setActiveTab, currentUser, refreshS
     resetHistory(emptyHistory);
   };
 
-  const saveDoctorProfile = (event) => {
+  const saveDoctorProfile = async (event) => {
     event.preventDefault();
-    mutateHospitalState((draft) => {
-      draft.doctors = draft.doctors.map((entry) =>
-        entry.id === currentUser.id
-          ? {
-            ...entry,
-            firstName: doctorProfileForm.firstName,
-            lastName: doctorProfileForm.lastName,
-            password: doctorProfileForm.password || entry.password,
-            age: Number(doctorProfileForm.age),
-            phoneNumber: doctorProfileForm.phoneNumber,
-            experience: doctorProfileForm.experience,
-            specialization: doctorProfileForm.specialization,
-            degree: doctorProfileForm.degree,
-            profileImageUrl: doctorProfileForm.profileImageUrl,
-          }
-          : entry,
-      );
+    try {
+      const doctorId = currentUser?._id || currentUser?.id;
+      const payload = {
+        firstName: doctorProfileForm.firstName,
+        lastName: doctorProfileForm.lastName,
+        phoneNumber: doctorProfileForm.phoneNumber,
+        age: Number(doctorProfileForm.age) || undefined,
+        address: doctorProfileForm.address || undefined,
+      };
 
-      draft.users = draft.users.map((entry) =>
-        entry.id === currentUser.id
-          ? {
-            ...entry,
-            firstName: doctorProfileForm.firstName,
-            lastName: doctorProfileForm.lastName,
-            password: doctorProfileForm.password || entry.password,
-          }
-          : entry,
-      );
-      return draft;
-    });
-    refreshState();
-    setIsEditingProfile(false);
+      if (updateDoctor) {
+        await updateDoctor(doctorId, payload);
+      }
+
+      mutateHospitalState((draft) => {
+        draft.doctors = draft.doctors.map((entry) =>
+          entry.id === currentUser.id
+            ? { ...entry, firstName: payload.firstName, lastName: payload.lastName, phoneNumber: payload.phoneNumber, age: payload.age, address: payload.address }
+            : entry,
+        );
+
+        draft.users = draft.users.map((entry) =>
+          entry.id === currentUser.id
+            ? { ...entry, firstName: payload.firstName, lastName: payload.lastName }
+            : entry,
+        );
+        return draft;
+      });
+
+      refreshState();
+      setIsEditingProfile(false);
+      alert("Profile updated successfully");
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      alert("Failed to update profile: " + (err.message || err));
+    }
   };
 
   return (

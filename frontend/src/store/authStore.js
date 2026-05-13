@@ -150,6 +150,30 @@ export const useAuth = create((set) => ({
       throw new Error(errorMessage);
     }
   },
+  updateDoctor: async (doctorId, doctorData) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await axios.put(`${API_BASE_URL}/doctors/${doctorId}`, doctorData, { withCredentials: true });
+      set({ loading: false, currentUser: res.data?.payload || null });
+      return res.data;
+    } catch (err) {
+      const errorMessage = getApiErrorMessage(err, "Update failed");
+      set({ loading: false, error: errorMessage });
+      throw new Error(errorMessage);
+    }
+  },
+  updatePatient: async (patientId, patientData) => {
+    try {
+      set({ loading: true, error: null });
+      const res = await axios.put(`${API_BASE_URL}/patients/${patientId}`, patientData, { withCredentials: true });
+      set({ loading: false, currentUser: res.data?.payload || null });
+      return res.data;
+    } catch (err) {
+      const errorMessage = getApiErrorMessage(err, "Update failed");
+      set({ loading: false, error: errorMessage });
+      throw new Error(errorMessage);
+    }
+  },
   registerPatient: async (patientData) => {
     try {
       set({ loading: true, error: null });

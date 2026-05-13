@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿
 
 const AppointmentListItem = ({ appointment, state, markCompleted, sendReminder, setPrescriptionValue, setHistoryValue, setActiveTab }) => {
   const patient = state.patients.find((entry) => String(entry.id) === String(appointment.patientId));

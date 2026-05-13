@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿
 
 const AppointmentCard = ({ appointment, userRole, state }) => {
   const patient = state.patients.find((entry) => String(entry.id) === String(appointment.patientId));

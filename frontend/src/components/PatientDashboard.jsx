@@ -12,6 +12,7 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [patientProfileForm, setPatientProfileForm] = useState(() => buildPatientProfileForm(currentUser));
   const bookAppointment = useAuth((state) => state.bookAppointment);
+  const updatePatient = useAuth((state) => state.updatePatient);
 
   const saveAppointment = async (event) => {
     event.preventDefault();
@@ -49,38 +50,44 @@ const PatientDashboard = ({ activeTab, state, user, currentUser, refreshState })
     }
   };
 
-  const savePatientProfile = (event) => {
+  const savePatientProfile = async (event) => {
     event.preventDefault();
-    mutateHospitalState((draft) => {
-      draft.patients = draft.patients.map((entry) =>
-        entry.id === user.id
-          ? {
-            ...entry,
-            firstName: patientProfileForm.firstName,
-            lastName: patientProfileForm.lastName,
-            password: patientProfileForm.password || entry.password,
-            age: Number(patientProfileForm.age),
-            phoneNumber: patientProfileForm.phoneNumber,
-            address: patientProfileForm.address,
-            profileImageUrl: patientProfileForm.profileImageUrl,
-          }
-          : entry,
-      );
+    try {
+      const patientId = currentUser?._id || user?.id;
+      const payload = {
+        firstName: patientProfileForm.firstName,
+        lastName: patientProfileForm.lastName,
+        phoneNumber: patientProfileForm.phoneNumber,
+        age: Number(patientProfileForm.age) || undefined,
+        address: patientProfileForm.address || undefined,
+      };
 
-      draft.users = draft.users.map((entry) =>
-        entry.id === user.id
-          ? {
-            ...entry,
-            firstName: patientProfileForm.firstName,
-            lastName: patientProfileForm.lastName,
-            password: patientProfileForm.password || entry.password,
-          }
-          : entry,
-      );
-      return draft;
-    });
-    refreshState();
-    setIsEditingProfile(false);
+      if (updatePatient) {
+        await updatePatient(patientId, payload);
+      }
+
+      mutateHospitalState((draft) => {
+        draft.patients = draft.patients.map((entry) =>
+          entry.id === user.id
+            ? { ...entry, firstName: payload.firstName, lastName: payload.lastName, phoneNumber: payload.phoneNumber, age: payload.age, address: payload.address }
+            : entry,
+        );
+
+        draft.users = draft.users.map((entry) =>
+          entry.id === user.id
+            ? { ...entry, firstName: payload.firstName, lastName: payload.lastName }
+            : entry,
+        );
+        return draft;
+      });
+
+      refreshState();
+      setIsEditingProfile(false);
+      alert("Profile updated successfully");
+    } catch (err) {
+      console.error("Failed to update patient profile:", err);
+      alert("Failed to update patient profile: " + (err.message || err));
+    }
   };
 
   return (

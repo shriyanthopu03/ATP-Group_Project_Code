@@ -18,56 +18,79 @@ const DoctorProfileForm = ({ doctorProfileForm, setDoctorProfileForm, saveDoctor
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <input
-          value={doctorProfileForm.firstName}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, firstName: event.target.value }))}
-          placeholder="First name"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
-        <input
-          value={doctorProfileForm.lastName}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, lastName: event.target.value }))}
-          placeholder="Last name"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
-        <input
-          value={doctorProfileForm.email}
-          readOnly
-          placeholder="Email"
-          className="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-400 outline-none font-bold"
-        />
-        <input
-          type="password"
-          value={doctorProfileForm.password}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, password: event.target.value }))}
-          placeholder="Password"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
-        <input
-          type="number"
-          value={doctorProfileForm.age}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, age: event.target.value }))}
-          placeholder="Age"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
-        <input
-          value={doctorProfileForm.experience}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, experience: event.target.value }))}
-          placeholder="Experience"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
-        <input
-          value={doctorProfileForm.specialization}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, specialization: event.target.value }))}
-          placeholder="Specialization"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
-        <input
-          value={doctorProfileForm.degree}
-          onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, degree: event.target.value }))}
-          placeholder="Degree"
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
-        />
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">First name</span>
+          <input
+            value={doctorProfileForm.firstName}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, firstName: event.target.value }))}
+            placeholder="First name"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Last name</span>
+          <input
+            value={doctorProfileForm.lastName}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, lastName: event.target.value }))}
+            placeholder="Last name"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Email</span>
+          <input
+            value={doctorProfileForm.email}
+            readOnly
+            placeholder="Email"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm text-slate-400 outline-none font-bold"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Address</span>
+          <input
+            value={doctorProfileForm.address}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, address: event.target.value }))}
+            placeholder="Address"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Age</span>
+          <input
+            type="number"
+            value={doctorProfileForm.age}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, age: event.target.value }))}
+            placeholder="Age"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Experience</span>
+          <input
+            value={doctorProfileForm.experience}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, experience: event.target.value }))}
+            placeholder="Experience"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Specialization</span>
+          <input
+            value={doctorProfileForm.specialization}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, specialization: event.target.value }))}
+            placeholder="Specialization"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
+        <label className="space-y-1.5">
+          <span className="ml-1 text-xs font-black uppercase tracking-widest text-slate-400">Degree</span>
+          <input
+            value={doctorProfileForm.degree}
+            onChange={(event) => setDoctorProfileForm((prev) => ({ ...prev, degree: event.target.value }))}
+            placeholder="Degree"
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none font-bold placeholder:font-normal placeholder:text-slate-400"
+          />
+        </label>
         <div className="sm:col-span-2 flex items-center gap-3">
           <button type="submit" className="rounded-2xl bg-blue-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-blue-500/20 hover:bg-blue-500 active:scale-95 transition-all">
             Update
