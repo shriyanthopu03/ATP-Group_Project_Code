@@ -9,10 +9,9 @@ import PatientRegistration from "./components/PatientRegistration";
 import AdminRegistration from "./components/AdminRegistration";
 import Login from "./components/Login";
 import HospitalDashboard from "./components/HospitalDashboard";
-import { config } from "dotenv";
-config()
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:5000/api";
-const SOCKET_URL = process.env.SOCKET_URL || "http://localhost:5000";
+// Vite exposes env vars via `import.meta.env`. Do NOT use `dotenv` in browser code.
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
 const useAppStore = create((set) => ({
   selectedRole: "PATIENT",
